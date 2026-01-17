@@ -10,35 +10,37 @@ This toolset provides a streamlined workflow for fixing bugs, implementing featu
 
 ```mermaid
 flowchart TD
-    Start[Create GitHub Issue] --> Solve[Run solve.rb ISSUE_NUMBER]
-    Solve --> Plan[AI Generates Plan]
-    Plan --> Review{Human Reviews Plan}
-    Review -->|Needs Changes| Plan
-    Review -->|Approved| Execute[execute_plan.rb]
+    Start[Create GitHub Issue] --> Init[nitl init]
+    Init --> Plan[nitl plan ISSUE_NUMBER]
+    Plan --> PlanGen[AI Generates Plan]
+    PlanGen --> Review{Human Reviews Plan}
+    Review -->|Needs Changes| PlanGen
+    Review -->|Approved| Execute[Execute Plan]
     Execute --> Code[AI Makes Code Changes]
     Code --> PR[Create Pull Request]
-    PR --> CI[iterate_with_ci_results.rb]
+    PR --> CI[Monitor CI Build]
     CI --> CheckCI{CI Passes?}
     CheckCI -->|No| Fix[AI Analyzes Failures]
     Fix --> Push[Push Fixes]
     Push --> CI
     CheckCI -->|Yes| HumanReview{Human Reviews PR}
-    HumanReview -->|Changes Requested| ReviewScript[review.rb]
-    ReviewScript --> Changes[AI Makes Changes]
+    HumanReview -->|Changes Requested| Feedback[nitl feedback ISSUE_NUMBER]
+    Feedback --> Changes[AI Makes Changes]
     Changes --> CI
-    HumanReview -->|Approved| Done[Complete]
+    HumanReview -->|Approved| Cleanup[nitl remove ISSUE_NUMBER]
+    Cleanup --> Done[Complete]
 ```
 
 ## Prerequisites
 
 Before using these scripts, ensure you have the following tools installed:
 
+- **[Ruby](https://www.ruby-lang.org/)** `>= 3.0` - Ruby interpreter (use rbenv, rvm, or Homebrew to install)
 - **[GitHub CLI](https://cli.github.com/)** (`gh`) - Must be authenticated (`gh auth login`)
 - **[Claude Code CLI](https://code.claude.com/)** (`claude`) - For AI-powered code generation
 - **[jq](https://stedolan.github.io/jq/)** - JSON processor (install via `brew install jq` on macOS)
 - **[curl](https://curl.se/)** - HTTP client (usually pre-installed)
 - **[worktrunk](https://github.com/max-sixty/worktrunk)** (`wt`) - Git worktree management tool
-- **Ruby** - Ruby interpreter (scripts use standard library only)
 
 ## Configuration
 
@@ -50,17 +52,39 @@ CIRCLE_CI_API_TOKEN=your_token_here
 
 The scripts automatically load environment variables from this file. The CircleCI token is required for monitoring build status and fetching failure details.
 
-## Usage
+## Installation
 
-### 1. Create and Solve an Issue
+If you're installing NITL (once it's distributed via Homebrew):
 
 ```bash
-./solve.rb 123
+brew install nitl  # When available
+```
+
+For development:
+
+1. Ensure you have Ruby 3.0 or higher installed
+2. Clone this repository
+3. Install dependencies: `bundle install`
+
+## Usage
+
+### 1. Initialize NITL
+
+```bash
+nitl init
+```
+
+This creates the `.nitl` directory structure needed for plans and configuration.
+
+### 2. Create and Plan an Issue
+
+```bash
+nitl plan 123
 ```
 
 This command:
 - Fetches GitHub issue #123
-- Uses Claude Code to generate a detailed plan saved to `plans/plan_gh_issue_no_123.md`
+- Uses Claude Code to generate a detailed plan saved to `.nitl/plans/plan_gh_issue_no_123.md`
 - Prompts you to review and approve the plan
 - Automatically proceeds to execution once approved
 
@@ -72,61 +96,39 @@ The plan includes:
 - Potential risks or considerations
 - Questions for clarification (if needed)
 
-### 2. Execute Plan (Automatic)
-
-`execute_plan.rb` is automatically invoked by `solve.rb`, but can also be run manually:
-
-```bash
-./execute_plan.rb 123
-```
-
-This script:
-- Reads the plan from `plans/plan_gh_issue_no_123.md`
+After plan approval, `nitl plan` automatically:
 - Creates a git worktree for branch `issue-123`
 - Uses Claude Code to implement the plan
-- Commits changes (including the plan file)
+- Commits changes (including the plan file) with a descriptive message
 - Pushes the branch and creates a pull request
-- Automatically proceeds to CI monitoring
+- Monitors CircleCI build status for the PR
+- If CI fails: extracts failure details, uses Claude Code to fix issues, pushes fixes, and iterates (up to 10 retries)
+- If CI passes: exits successfully
 
 **Note:** The AI is instructed not to run tests locally, but instead to push a PR and rely on CI.
 
-### 3. Iterate with CI Results (Automatic)
-
-`iterate_with_ci_results.rb` is automatically invoked after PR creation:
-
-```bash
-./iterate_with_ci_results.rb 123 [PR_NUMBER]
-```
-
-This script:
-- Monitors CircleCI build status for the PR
-- Waits up to 1 hour for builds to complete
-- If CI passes: exits successfully
-- If CI fails: extracts failure details, uses Claude Code to fix issues, pushes fixes, and iterates
-- Maximum of 10 retry attempts
-
 Failure details are saved to `tmp/issue-{NUMBER}_failure_details_{ITERATION}.txt` for reference.
 
-### 4. Handle PR Review Feedback
+### 3. Handle PR Review Feedback
 
 When reviewers request changes on a PR:
 
 ```bash
-./review.rb 123
+nitl feedback 123
 ```
 
-This script:
+This command:
 - Switches to the worktree for branch `issue-123`
 - Prompts you to enter feedback (multi-line input, press Enter 3 times to submit)
 - Uses Claude Code to analyze the feedback and make changes
-- Pushes the changes and monitors CI again
+- Pushes the changes and monitors CI again (with automatic retries if CI fails)
 
-### 5. Clean Up (Optional)
+### 4. Clean Up (Optional)
 
 To delete a branch and its worktree after completion:
 
 ```bash
-./delete_solution.rb 123
+nitl remove 123
 ```
 
 This removes:
@@ -134,26 +136,25 @@ This removes:
 - Remote branch `issue-123`
 - Associated worktree
 
-## Scripts Overview
+## Commands Overview
 
-| Script | Purpose | Auto-Invoked By |
-|--------|---------|-----------------|
-| `solve.rb` | Generate implementation plan for an issue | - |
-| `execute_plan.rb` | Execute plan and create PR | `solve.rb` |
-| `iterate_with_ci_results.rb` | Monitor CI and fix failures | `execute_plan.rb`, `review.rb` |
-| `review.rb` | Handle PR review feedback | - |
-| `delete_solution.rb` | Clean up branches and worktrees | - |
-| `utilities.rb` | Shared helper functions | All scripts |
+| Command | Purpose |
+|---------|---------|
+| `nitl init` | Initialize NITL in the current repository |
+| `nitl plan <issue_number>` | Generate plan and execute it (creates PR, monitors CI) |
+| `nitl feedback <issue_number>` | Handle PR review feedback and iterate |
+| `nitl remove <issue_number>` | Clean up branches and worktrees |
 
 ## Directory Structure
 
-The scripts create and manage the following:
+The tool creates and manages the following:
 
 ```
 .
 ├── .env                          # Environment variables (you create this)
-├── plans/                        # Generated plans (created automatically)
-│   └── plan_gh_issue_no_123.md  # Example plan file
+├── .nitl/                        # NITL configuration directory (created by `nitl init`)
+│   └── plans/                    # Generated plans
+│       └── plan_gh_issue_no_123.md  # Example plan file
 ├── tmp/                          # CI failure details (created automatically)
 │   └── issue-123_failure_details_1_1.txt
 └── [worktree directories]        # Managed by worktrunk
@@ -170,42 +171,48 @@ The scripts create and manage the following:
 
 ## Workflow Tips
 
-1. **Start Clean**: Ensure you don't have uncommitted changes before running `solve.rb` (or commit/stash them first)
-2. **Review Plans Carefully**: The plan review step is your opportunity to catch issues before code changes
-3. **Monitor Output**: Scripts provide colored output (ℹ info, ✓ success, ⚠ warning, ✗ error) to track progress
-4. **PR Linking**: PRs automatically reference the GitHub issue (e.g., "Fixes #123") for proper linking
-5. **CI Timeout**: CI monitoring waits up to 1 hour for builds to complete
-6. **Max Retries**: If CI fails more than 10 times, the script exits and requires manual intervention
+1. **Initialize First**: Always run `nitl init` before using other commands
+2. **Start Clean**: Ensure you don't have uncommitted changes before running `nitl plan` (or commit/stash them first)
+3. **Review Plans Carefully**: The plan review step is your opportunity to catch issues before code changes
+4. **Monitor Output**: Commands provide colored output (ℹ info, ✓ success, ⚠ warning, ✗ error) to track progress
+5. **PR Linking**: PRs automatically reference the GitHub issue (e.g., "Fixes #123") for proper linking
+6. **CI Timeout**: CI monitoring waits up to 1 hour for builds to complete
+7. **Max Retries**: If CI fails more than 10 times, the command exits and requires manual intervention
 
 ## Example Session
 
 ```bash
-# 1. Create a GitHub issue describing the bug/feature
-# 2. Solve it:
-./solve.rb 456
+# 1. Initialize NITL in your repository
+nitl init
 
-# Review the generated plan at plans/plan_gh_issue_no_456.md
+# 2. Create a GitHub issue describing the bug/feature
+
+# 3. Generate and execute plan:
+nitl plan 456
+
+# Review the generated plan at .nitl/plans/plan_gh_issue_no_456.md
 # Answer any questions Claude asked, then approve
 
-# 3. Script automatically:
+# 4. Command automatically:
 #    - Executes the plan
 #    - Creates PR #789
 #    - Monitors CI
 #    - Fixes failures if needed
 
-# 4. Review the PR on GitHub
+# 5. Review the PR on GitHub
 
-# 5. If changes are needed:
-./review.rb 456
+# 6. If changes are needed:
+nitl feedback 456
 # Enter your feedback, press Enter 3 times
 
-# 6. After merging, clean up:
-./delete_solution.rb 456
+# 7. After merging, clean up:
+nitl remove 456
 ```
 
 ## Error Handling
 
-The scripts include error handling for common scenarios:
+The tool includes error handling for common scenarios:
+- NITL not initialized (must run `nitl init` first)
 - Missing GitHub authentication
 - Uncommitted changes (with warning)
 - Duplicate branches (must delete first)
@@ -214,3 +221,18 @@ The scripts include error handling for common scenarios:
 - Missing required tools
 
 All errors provide clear messages about what went wrong and how to resolve the issue.
+
+## Development
+
+### Requirements
+
+- Ruby 3.0 or higher (specified in `.ruby-version` and `Gemfile`)
+- Development dependencies installed via `bundle install`
+
+### Running Tests
+
+```bash
+bundle exec rspec
+```
+
+Tests are located in the `spec/` directory and are excluded from distribution packages.

@@ -1,0 +1,26 @@
+# RSpec
+.rspec_status
+.rspec_failures
+
+# Bundler
+vendor/bundle/
+.bundle/
+
+# Plans and temp files (user-generated)
+.nitl/plans/
+tmp/
+
+# Environment variables and secrets
+.env
+.nitl/secrets.yaml
+
+# OS files
+.DS_Store
+*.swp
+*.swo
+*~
+
+# IDE
+.idea/
+.vscode/
+*.iml
