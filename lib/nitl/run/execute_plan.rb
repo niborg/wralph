@@ -19,7 +19,31 @@ module Nitl
 
         branch_name = "issue-#{issue_number}".freeze
         current_branch = `git branch --show-current`.strip # To switch back later
-        Interfaces::Shell.switch_into_worktree(branch_name)
+
+        # Check if worktree already exists, if not, create it and copy secrets.yaml
+        worktrees = Interfaces::Shell.get_worktrees
+        worktree_exists = worktrees.any? { |wt| wt['branch'] == branch_name }
+
+        if !worktree_exists
+          # Get the main repo root before creating worktree (in case we're already in a worktree)
+          # Use git rev-parse to reliably get the main repo root even from within a worktree
+          stdout, _, success = Interfaces::Shell.run_command('git rev-parse --show-toplevel')
+          main_repo_root = success && !stdout.empty? ? stdout.strip : Interfaces::Repo.repo_root
+          main_secrets_file = File.join(main_repo_root, '.nitl', 'secrets.yaml')
+
+          # Create the worktree
+          Interfaces::Shell.switch_into_worktree(branch_name)
+
+          # Copy secrets.yaml from main repo to the new worktree
+          if File.exist?(main_secrets_file)
+            require 'fileutils'
+            worktree_secrets_file = Interfaces::Repo.secrets_file
+            FileUtils.mkdir_p(File.dirname(worktree_secrets_file))
+            FileUtils.cp(main_secrets_file, worktree_secrets_file)
+          end
+        else
+          Interfaces::Shell.switch_into_worktree(branch_name)
+        end
 
         execution_instructions = <<~EXECUTION_INSTRUCTIONS
           You previously created a plan to solve GitHub issue ##{issue_number}. You can find the plan in the file: `#{plan_file}`. You have been placed in a git worktree for the branch `#{branch_name}`.

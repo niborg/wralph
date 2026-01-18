@@ -22,7 +22,10 @@ module Nitl
       def self.api_token
         secrets = load_secrets
         token = secrets['ci_api_token']
-        token&.strip
+        return nil unless token
+
+        token = token.strip
+        token.empty? ? nil : token
       end
 
       private

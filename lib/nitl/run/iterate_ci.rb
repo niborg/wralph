@@ -35,7 +35,11 @@ module Nitl
 
         api_token = Interfaces::Ci.api_token
         if api_token.nil? || api_token.empty?
-          Interfaces::Print.warning '.nitl/secrets.yaml not found or ci_api_token not set. Make sure to configure your CI API token in .nitl/secrets.yaml'
+          Interfaces::Print.error 'ci_api_token is not set in .nitl/secrets.yaml'
+          Interfaces::Print.error ''
+          Interfaces::Print.error 'Please add your CircleCI API token to .nitl/secrets.yaml:'
+          Interfaces::Print.error '  ci_api_token: your-token-here'
+          exit 1
         else
           Interfaces::Print.success 'Loaded CI API token from .nitl/secrets.yaml'
         end
