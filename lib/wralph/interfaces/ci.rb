@@ -1,22 +1,22 @@
 # frozen_string_literal: true
 
 require 'yaml'
-require_relative '../adapters/ci'
+require_relative '../adapters/cis'
 require_relative 'repo'
 
 module Wralph
   module Interfaces
     module Ci
       def self.build_status(pr_number, repo_owner, repo_name, api_token, verbose: true)
-        Adapters::Ci::CircleCi.build_status(pr_number, repo_owner, repo_name, api_token, verbose: verbose)
+        Adapters::Cis::CircleCi.build_status(pr_number, repo_owner, repo_name, api_token, verbose: verbose)
       end
 
       def self.wait_for_build(pr_number, repo_owner, repo_name, api_token)
-        Adapters::Ci::CircleCi.wait_for_build(pr_number, repo_owner, repo_name, api_token)
+        Adapters::Cis::CircleCi.wait_for_build(pr_number, repo_owner, repo_name, api_token)
       end
 
       def self.build_failures(pr_number, repo_owner, repo_name, api_token)
-        Adapters::Ci::CircleCi.build_failures(pr_number, repo_owner, repo_name, api_token)
+        Adapters::Cis::CircleCi.build_failures(pr_number, repo_owner, repo_name, api_token)
       end
 
       def self.api_token

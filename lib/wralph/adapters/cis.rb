@@ -2,8 +2,8 @@
 
 module Wralph
   module Adapters
-    module Ci
-      require_relative 'ci/circle_ci'
+    module Cis
+      require_relative 'cis/circle_ci'
     end
   end
 end

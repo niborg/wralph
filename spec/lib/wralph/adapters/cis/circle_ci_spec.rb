@@ -2,7 +2,7 @@
 
 require 'spec_helper'
 
-RSpec.describe Wralph::Adapters::Ci::CircleCi do
+RSpec.describe Wralph::Adapters::Cis::CircleCi do
   let(:pr_number) { 42 }
   let(:repo_owner) { 'acme' }
   let(:repo_name) { 'widgets' }

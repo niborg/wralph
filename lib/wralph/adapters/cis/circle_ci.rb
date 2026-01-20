@@ -8,7 +8,7 @@ require_relative '../../interfaces/print'
 
 module Wralph
   module Adapters
-    module Ci
+    module Cis
       module CircleCi
         def self.http_get(url, api_token: nil)
           uri = URI(url)

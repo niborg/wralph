@@ -5,7 +5,7 @@ require_relative '../../interfaces/shell'
 
 module Wralph
   module Adapters
-    module Agent
+    module Agents
       module ClaudeCode
         def self.run(instructions)
           claude_output, = Interfaces::Shell.run_command(
