@@ -5,6 +5,7 @@ require_relative '../interfaces/repo'
 require_relative '../interfaces/print'
 require_relative '../interfaces/shell'
 require_relative '../interfaces/agent'
+require_relative '../interfaces/objective_repository'
 require_relative 'init'
 require_relative 'execute_plan'
 
@@ -34,11 +35,12 @@ module Wralph
           Interfaces::Shell.ask_user_to_continue('Continue anyway? (y/N) ')
         end
 
-        # Fetch issue details to verify it exists
+        # Fetch issue details to verify it exists and download it
         Interfaces::Print.info "Fetching GitHub issue ##{issue_number}..."
-        _, _, success = Interfaces::Shell.run_command("gh issue view #{issue_number}")
-        unless success
-          Interfaces::Print.error "Issue ##{issue_number} not found or not accessible"
+        begin
+          Interfaces::ObjectiveRepository.download!(issue_number)
+        rescue StandardError => e
+          Interfaces::Print.error "Issue ##{issue_number} not found or not accessible: #{e.message}"
           exit 1
         end
 
@@ -64,11 +66,11 @@ module Wralph
         # Step 1: Create initial plan and execute
         Interfaces::Print.info 'Step 1: Creating plan and executing solution...'
 
+        objective_file = Interfaces::ObjectiveRepository.local_file_path(issue_number)
         instructions_template = <<~INSTRUCTIONS
-          I need you to make a plan to solve GitHub issue ##{issue_number}. You are not to make any code changes. Instead, here's what I need you to do:
+          I need you to make a plan to solve the objective "#{issue_number}" in the file: `#{objective_file}`. You are not to make any code changes. Instead, here's what I need you to do:
 
-          1. First, read the GitHub issue using the gh CLI:
-             `gh issue view #{issue_number}`
+          1. First, read the objective from the file
 
           2. Create a detailed plan for solving the issue. Write your thinking and plan in a markdown file at:
              `#{plan_file}`

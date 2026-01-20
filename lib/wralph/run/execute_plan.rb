@@ -4,6 +4,7 @@ require_relative '../interfaces/repo'
 require_relative '../interfaces/print'
 require_relative '../interfaces/shell'
 require_relative '../interfaces/agent'
+require_relative '../interfaces/objective_repository'
 require_relative 'iterate_ci'
 
 module Wralph
@@ -63,24 +64,23 @@ module Wralph
         else
           # Fetch GitHub issue content
           Interfaces::Print.info "No plan found. Fetching GitHub issue ##{issue_number}..."
-          issue_content, _, success = Interfaces::Shell.run_command("gh issue view #{issue_number}")
-
-          unless success
-            Interfaces::Print.error "Failed to fetch GitHub issue ##{issue_number}. Please check the issue number and your GitHub CLI authentication."
+          begin
+            objective_file = Interfaces::ObjectiveRepository.download!(issue_number)
+            File.read(objective_file)
+          rescue StandardError => e
+            Interfaces::Print.error "Failed to fetch objective ##{issue_number}: #{e.message}"
             exit 1
           end
 
           execution_instructions = <<~EXECUTION_INSTRUCTIONS
-            I need you to solve GitHub issue ##{issue_number}. You have been placed in a git worktree for the branch `#{branch_name}`.
-
-            Issue details:
-            #{issue_content}
+            I need you to solve the objective "#{issue_number}" in the file: `#{objective_file}`. You have been placed in a git worktree for the branch `#{branch_name}`.
 
             Do as follows:
 
-            1. Solve the issue:
-               - Read and understand the issue requirements
-               - Make the necessary code changes to solve the issue
+            1. Solve the objective:
+               - Read and understand the objective's requirements
+               - Make the necessary code changes to solve the objective
+               - Write tests to verify the solution
                - Commit your changes with a descriptive message that references the issue (e.g., "Fixes ##{issue_number}")
                - Push the branch to GitHub
                - Create a pull request, referencing the issue in the body like "Fixes ##{issue_number}"
@@ -98,37 +98,36 @@ module Wralph
 
         # Extract PR number from output (look for patterns like "PR #123", "**PR #123**", or "Pull Request #123")
         # Try multiple patterns in order of specificity to avoid false matches
-        pr_number = nil
 
         # Pattern 1: Look for PR in URL format (most reliable and unambiguous)
         # Matches: https://github.com/owner/repo/pull/774
-        Interfaces::Print.info "Extracting PR number from output by looking for the PR URL pattern..."
+        Interfaces::Print.info 'Extracting PR number from output by looking for the PR URL pattern...'
         pr_number = claude_output.match(%r{github\.com/[^/\s]+/[^/\s]+/pull/(\d+)}i)&.[](1)
 
         # Pattern 2: Look for "PR Number:" followed by optional markdown formatting and the number
         # This handles formats like "PR Number: **#774**" or "PR Number: #774"
         if pr_number.nil?
           # Match "PR Number:" followed by optional whitespace, optional markdown bold, optional #, then digits
-          Interfaces::Print.warning "Extracting PR number from output by looking for the PR Number pattern..."
+          Interfaces::Print.warning 'Extracting PR number from output by looking for the PR Number pattern...'
           pr_number = claude_output.match(/PR\s+Number\s*:\s*(?:\*\*)?#?(\d+)/i)&.[](1)
         end
 
         # Pattern 3: Look for "PR #" or "Pull Request #" at start of line or after heading markers
         if pr_number.nil?
-          Interfaces::Print.warning "Extracting PR number from output by looking for the PR # pattern..."
+          Interfaces::Print.warning 'Extracting PR number from output by looking for the PR # pattern...'
           pr_number = claude_output.match(/(?:^|\n|###\s+)[^\n]*(?:PR|Pull Request)[:\s]+(?:\*\*)?#?(\d+)/i)&.[](1)
         end
 
         # Pattern 4: Fallback to simple pattern but exclude "Found PR" patterns
         if pr_number.nil?
           # Match PR but not if preceded by "Found" or similar words
-          Interfaces::Print.warning "Extracting PR number from output by looking for the PR pattern..."
+          Interfaces::Print.warning 'Extracting PR number from output by looking for the PR pattern...'
           pr_number = claude_output.match(/(?<!Found\s)(?:PR|Pull Request)[:\s]+(?:\*\*)?#?(\d+)/i)&.[](1)
         end
 
         # Pattern 5: Last resort - any PR pattern (but this might match false positives)
         if pr_number.nil?
-          Interfaces::Print.warning "Extracting PR number from output by looking for the any PR pattern..."
+          Interfaces::Print.warning 'Extracting PR number from output by looking for the any PR pattern...'
           pr_number = claude_output.match(/(?:PR|Pull Request|pull request)[^0-9]*#?(\d+)/i)&.[](1)
         end
 
