@@ -62,6 +62,60 @@ RSpec.describe Nitl::Run::Init do
         end
       end
     end
+
+    it 'adds .nitl/secrets.yaml to .gitignore when .gitignore does not exist' do
+      Dir.mktmpdir do |tmpdir|
+        git_dir = File.join(tmpdir, '.git')
+        Dir.mkdir(git_dir)
+
+        Dir.chdir(tmpdir) do
+          gitignore_path = File.join(tmpdir, '.gitignore')
+          expect(File.exist?(gitignore_path)).to be false
+
+          Nitl::Run::Init.run
+
+          expect(File.exist?(gitignore_path)).to be true
+          gitignore_content = File.read(gitignore_path)
+          expect(gitignore_content).to include('.nitl/secrets.yaml')
+        end
+      end
+    end
+
+    it 'adds .nitl/secrets.yaml to .gitignore when .gitignore exists but does not contain the entry' do
+      Dir.mktmpdir do |tmpdir|
+        git_dir = File.join(tmpdir, '.git')
+        Dir.mkdir(git_dir)
+
+        Dir.chdir(tmpdir) do
+          gitignore_path = File.join(tmpdir, '.gitignore')
+          File.write(gitignore_path, "# Existing ignore\n*.log\n")
+
+          Nitl::Run::Init.run
+
+          gitignore_content = File.read(gitignore_path)
+          expect(gitignore_content).to include('.nitl/secrets.yaml')
+          expect(gitignore_content).to include('# Existing ignore')
+          expect(gitignore_content).to include('*.log')
+        end
+      end
+    end
+
+    it 'does not duplicate .nitl/secrets.yaml in .gitignore if it already exists' do
+      Dir.mktmpdir do |tmpdir|
+        git_dir = File.join(tmpdir, '.git')
+        Dir.mkdir(git_dir)
+
+        Dir.chdir(tmpdir) do
+          gitignore_path = File.join(tmpdir, '.gitignore')
+          File.write(gitignore_path, ".nitl/secrets.yaml\n*.log\n")
+
+          Nitl::Run::Init.run
+
+          gitignore_content = File.read(gitignore_path)
+          expect(gitignore_content.scan('.nitl/secrets.yaml').count).to eq(1)
+        end
+      end
+    end
   end
 
   describe '.initialized?' do

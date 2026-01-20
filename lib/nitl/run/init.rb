@@ -40,6 +40,9 @@ module Nitl
           Interfaces::Print.success "Created .nitl/secrets.yaml template"
         end
 
+        # Ensure .nitl/secrets.yaml is in .gitignore
+        update_gitignore
+
         Interfaces::Print.success "NITL initialized successfully!"
         Interfaces::Print.info "You can now use 'nitl plan <issue_number>' to get started"
       end
@@ -61,6 +64,25 @@ module Nitl
       rescue => e
         Interfaces::Print.error "Error checking initialization: #{e.message}"
         exit 1
+      end
+
+      def self.update_gitignore
+        repo_root = Interfaces::Repo.repo_root
+        gitignore_path = File.join(repo_root, '.gitignore')
+        secrets_ignore_entry = '.nitl/secrets.yaml'
+
+        # Check if entry already exists
+        if File.exist?(gitignore_path)
+          content = File.read(gitignore_path)
+          return if content.include?(secrets_ignore_entry)
+        end
+
+        # Add entry to .gitignore
+        entry = "\n# NITL secrets\n#{secrets_ignore_entry}\n"
+        File.open(gitignore_path, 'a') do |f|
+          f.write(entry)
+        end
+        Interfaces::Print.success "Added .nitl/secrets.yaml to .gitignore"
       end
     end
   end
