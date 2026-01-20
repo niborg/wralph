@@ -1,10 +1,20 @@
 # WRALPH - Workflow Ralph
 
-**WRALPH** (short for **Workflow Ralph**) is a Ruby-based toolset for automating software development workflows using AI (Claude Code) in a human-in-the-loop pattern. Create GitHub issues, generate implementation plans, execute code changes, and iterate through CI failures automatically.
+**WRALPH** (short for **Workflow Ralph**) is an implementation of the "Ralph Wiggum" technique of using AI agents to iteratively develop code until complete.
 
 ## Overview
 
-This toolset provides a streamlined workflow for fixing bugs, implementing features, or making code changes by combining AI-powered code generation with human oversight. The process flows from issue creation → plan generation → execution → CI iteration → human review.
+This toolset provides a streamlined workflow for fixing bugs, implementing features, or making code changes by combining AI-powered code generation with human oversight. The process flows from issue repository pull → plan generation → execution → CI iteration → human review.
+
+## What Makes WRALPH Distinct
+
+What sets WRALPH apart from other autonomous development tools is its explicit use of **non-AI components** to facilitate the workflow and allow multiple instances running (even on the same repository) without interference:
+
+- **Issue Repository**: Plans are generated from structured GitHub issues, providing clear requirements and context
+- **Git Worktrees**: Each issue gets its own isolated worktree, ensuring clean separation and preventing conflicts
+- **Remote CI Evaluation**: Results are evaluated using remote CI (CircleCI), which allows multiple instances of WRALPH to run in parallel without interfering with each other
+
+The remote CI feature is particularly powerful—it enables you to run multiple instances of WRALPH simultaneously, each working on different issues, without the processes stepping on each other. This parallel execution capability makes WRALPH highly scalable for teams working on multiple issues concurrently.
 
 ## Workflow
 
