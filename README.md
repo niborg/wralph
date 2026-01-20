@@ -1,6 +1,6 @@
-# NITL - Human-In-The-Loop AI Factory
+# WRALPH - Workflow Ralph
 
-A Ruby-based toolset for automating software development workflows using AI (Claude Code) in a human-in-the-loop pattern. Create GitHub issues, generate implementation plans, execute code changes, and iterate through CI failures automatically.
+**WRALPH** (short for **Workflow Ralph**) is a Ruby-based toolset for automating software development workflows using AI (Claude Code) in a human-in-the-loop pattern. Create GitHub issues, generate implementation plans, execute code changes, and iterate through CI failures automatically.
 
 ## Overview
 
@@ -10,8 +10,8 @@ This toolset provides a streamlined workflow for fixing bugs, implementing featu
 
 ```mermaid
 flowchart TD
-    Start[Create GitHub Issue] --> Init[nitl init]
-    Init --> Plan[nitl plan ISSUE_NUMBER]
+    Start[Create GitHub Issue] --> Init[wralph init]
+    Init --> Plan[wralph plan ISSUE_NUMBER]
     Plan --> PlanGen[AI Generates Plan]
     PlanGen --> Review{Human Reviews Plan}
     Review -->|Needs Changes| PlanGen
@@ -24,10 +24,10 @@ flowchart TD
     Fix --> Push[Push Fixes]
     Push --> CI
     CheckCI -->|Yes| HumanReview{Human Reviews PR}
-    HumanReview -->|Changes Requested| Feedback[nitl feedback ISSUE_NUMBER]
+    HumanReview -->|Changes Requested| Feedback[wralph feedback ISSUE_NUMBER]
     Feedback --> Changes[AI Makes Changes]
     Changes --> CI
-    HumanReview -->|Approved| Cleanup[nitl remove ISSUE_NUMBER]
+    HumanReview -->|Approved| Cleanup[wralph remove ISSUE_NUMBER]
     Cleanup --> Done[Complete]
 ```
 
@@ -54,10 +54,10 @@ The scripts automatically load environment variables from this file. The CircleC
 
 ## Installation
 
-If you're installing NITL (once it's distributed via Homebrew):
+If you're installing WRALPH (once it's distributed via Homebrew):
 
 ```bash
-brew install nitl  # When available
+brew install wralph  # When available
 ```
 
 For development:
@@ -68,23 +68,23 @@ For development:
 
 ## Usage
 
-### 1. Initialize NITL
+### 1. Initialize WRALPH
 
 ```bash
-nitl init
+wralph init
 ```
 
-This creates the `.nitl` directory structure needed for plans and configuration.
+This creates the `.wralph` directory structure needed for plans and configuration.
 
 ### 2. Create and Plan an Issue
 
 ```bash
-nitl plan 123
+wralph plan 123
 ```
 
 This command:
 - Fetches GitHub issue #123
-- Uses Claude Code to generate a detailed plan saved to `.nitl/plans/plan_gh_issue_no_123.md`
+- Uses Claude Code to generate a detailed plan saved to `.wralph/plans/plan_gh_issue_no_123.md`
 - Prompts you to review and approve the plan
 - Automatically proceeds to execution once approved
 
@@ -96,7 +96,7 @@ The plan includes:
 - Potential risks or considerations
 - Questions for clarification (if needed)
 
-After plan approval, `nitl plan` automatically:
+After plan approval, `wralph plan` automatically:
 - Creates a git worktree for branch `issue-123`
 - Uses Claude Code to implement the plan
 - Commits changes (including the plan file) with a descriptive message
@@ -114,7 +114,7 @@ Failure details are saved to `tmp/issue-{NUMBER}_failure_details_{ITERATION}.txt
 When reviewers request changes on a PR:
 
 ```bash
-nitl feedback 123
+wralph feedback 123
 ```
 
 This command:
@@ -128,7 +128,7 @@ This command:
 To delete a branch and its worktree after completion:
 
 ```bash
-nitl remove 123
+wralph remove 123
 ```
 
 This removes:
@@ -140,10 +140,10 @@ This removes:
 
 | Command | Purpose |
 |---------|---------|
-| `nitl init` | Initialize NITL in the current repository |
-| `nitl plan <issue_number>` | Generate plan and execute it (creates PR, monitors CI) |
-| `nitl feedback <issue_number>` | Handle PR review feedback and iterate |
-| `nitl remove <issue_number>` | Clean up branches and worktrees |
+| `wralph init` | Initialize WRALPH in the current repository |
+| `wralph plan <issue_number>` | Generate plan and execute it (creates PR, monitors CI) |
+| `wralph feedback <issue_number>` | Handle PR review feedback and iterate |
+| `wralph remove <issue_number>` | Clean up branches and worktrees |
 
 ## Directory Structure
 
@@ -152,7 +152,7 @@ The tool creates and manages the following:
 ```
 .
 ├── .env                          # Environment variables (you create this)
-├── .nitl/                        # NITL configuration directory (created by `nitl init`)
+├── .wralph/                      # WRALPH configuration directory (created by `wralph init`)
 │   └── plans/                    # Generated plans
 │       └── plan_gh_issue_no_123.md  # Example plan file
 ├── tmp/                          # CI failure details (created automatically)
@@ -171,8 +171,8 @@ The tool creates and manages the following:
 
 ## Workflow Tips
 
-1. **Initialize First**: Always run `nitl init` before using other commands
-2. **Start Clean**: Ensure you don't have uncommitted changes before running `nitl plan` (or commit/stash them first)
+1. **Initialize First**: Always run `wralph init` before using other commands
+2. **Start Clean**: Ensure you don't have uncommitted changes before running `wralph plan` (or commit/stash them first)
 3. **Review Plans Carefully**: The plan review step is your opportunity to catch issues before code changes
 4. **Monitor Output**: Commands provide colored output (ℹ info, ✓ success, ⚠ warning, ✗ error) to track progress
 5. **PR Linking**: PRs automatically reference the GitHub issue (e.g., "Fixes #123") for proper linking
@@ -182,15 +182,15 @@ The tool creates and manages the following:
 ## Example Session
 
 ```bash
-# 1. Initialize NITL in your repository
-nitl init
+# 1. Initialize WRALPH in your repository
+wralph init
 
 # 2. Create a GitHub issue describing the bug/feature
 
 # 3. Generate and execute plan:
-nitl plan 456
+wralph plan 456
 
-# Review the generated plan at .nitl/plans/plan_gh_issue_no_456.md
+# Review the generated plan at .wralph/plans/plan_gh_issue_no_456.md
 # Answer any questions Claude asked, then approve
 
 # 4. Command automatically:
@@ -202,17 +202,17 @@ nitl plan 456
 # 5. Review the PR on GitHub
 
 # 6. If changes are needed:
-nitl feedback 456
+wralph feedback 456
 # Enter your feedback, press Enter 3 times
 
 # 7. After merging, clean up:
-nitl remove 456
+wralph remove 456
 ```
 
 ## Error Handling
 
 The tool includes error handling for common scenarios:
-- NITL not initialized (must run `nitl init` first)
+- WRALPH not initialized (must run `wralph init` first)
 - Missing GitHub authentication
 - Uncommitted changes (with warning)
 - Duplicate branches (must delete first)

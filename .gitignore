@@ -7,12 +7,12 @@ vendor/bundle/
 .bundle/
 
 # Plans and temp files (user-generated)
-.nitl/plans/
+.wralph/plans/
 tmp/
 
 # Environment variables and secrets
 .env
-.nitl/secrets.yaml
+.wralph/secrets.yaml
 
 # OS files
 .DS_Store

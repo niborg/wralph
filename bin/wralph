@@ -1,0 +1,60 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+# Add lib directory to load path
+lib_dir = File.expand_path(File.join(File.dirname(__FILE__), '..', 'lib'))
+$LOAD_PATH.unshift(lib_dir) unless $LOAD_PATH.include?(lib_dir)
+
+require 'wralph'
+
+# Parse arguments
+case ARGV[0]
+when 'init'
+  Wralph::Run::Init.run
+when 'plan'
+  if ARGV[1].nil?
+    puts "Usage: wralph plan <github_issue_number>"
+    exit 1
+  end
+  Wralph::Run::Plan.run(ARGV[1])
+when 'execute'
+  if ARGV[1].nil?
+    puts "Usage: wralph execute <github_issue_number>"
+    exit 1
+  end
+  Wralph::Run::ExecutePlan.run(ARGV[1])
+when 'feedback'
+  if ARGV[1].nil?
+    puts "Usage: wralph feedback <github_issue_number>"
+    exit 1
+  end
+  Wralph::Run::Feedback.run(ARGV[1])
+when 'remove'
+  if ARGV[1].nil?
+    puts "Usage: wralph remove <github_issue_number>"
+    exit 1
+  end
+  Wralph::Run::Remove.run(ARGV[1])
+when '--version', '-v'
+  puts "wralph #{Wralph::VERSION}"
+else
+  if ARGV.empty? || ARGV[0] == '--help' || ARGV[0] == '-h'
+    puts "Usage: wralph <command> [options]"
+    puts ""
+    puts "Commands:"
+    puts "  init                    Initialize WRALPH in the current repository"
+    puts "  plan <issue_number>     Generate and execute plan for GitHub issue"
+    puts "  execute <issue_number>  Execute an existing plan for GitHub issue"
+    puts "  feedback <issue_number> Handle PR review feedback"
+    puts "  remove <issue_number>   Remove branch, worktree, and remote branch for issue"
+    puts ""
+    puts "Options:"
+    puts "  --version, -v           Show version"
+    puts "  --help, -h              Show this help message"
+    exit 0
+  else
+    puts "Unknown command: #{ARGV[0]}"
+    puts "Run 'wralph --help' for usage information"
+    exit 1
+  end
+end
