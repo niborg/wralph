@@ -12,15 +12,88 @@ RSpec.describe Nitl::Run::ExecutePlan do
     let(:secrets_file) { File.join('.nitl', 'secrets.yaml') }
 
     before do
-      # Mock git commands
-      allow_any_instance_of(Object).to receive(:`).with('git branch --show-current').and_return('master')
+      # Mock git branch --show-current (can be overridden in specific tests)
+      allow(Nitl::Interfaces::Shell).to receive(:run_command)
+        .with('git branch --show-current')
+        .and_return(['master', '', true])
     end
 
     context 'when plan file does not exist' do
-      it 'exits with error' do
+      it 'fetches GitHub issue and executes based on issue content' do
         Dir.mktmpdir do |tmpdir|
-          git_dir = File.join(tmpdir, '.git')
-          Dir.mkdir(git_dir)
+          FileUtils.mkdir_p(File.join(tmpdir, '.git'))
+          FileUtils.mkdir_p(File.join(tmpdir, '.nitl', 'plans'))
+
+          # Mock git branch --show-current
+          allow(Nitl::Interfaces::Shell).to receive(:run_command)
+            .with('git branch --show-current')
+            .and_return(['master', '', true])
+
+          # Mock get_worktrees
+          allow(Nitl::Interfaces::Shell).to receive(:get_worktrees).and_return([])
+
+          # Mock git rev-parse
+          allow(Nitl::Interfaces::Shell).to receive(:run_command)
+            .with('git rev-parse --show-toplevel')
+            .and_return([tmpdir, '', true])
+
+          # Mock switch_into_worktree
+          allow(Nitl::Interfaces::Shell).to receive(:switch_into_worktree) do |branch, _options|
+            # Stay in tmpdir for test
+          end
+
+          # Mock gh issue view to return issue content
+          issue_content = "Title: Test Issue\nBody: This is a test issue\n"
+          allow(Nitl::Interfaces::Shell).to receive(:run_command)
+            .with("gh issue view #{issue_number}")
+            .and_return([issue_content, '', true])
+
+          # Mock Agent.run
+          allow(Nitl::Interfaces::Agent).to receive(:run).and_return('PR Number: 456')
+
+          # Mock IterateCI.run
+          allow(Nitl::Run::IterateCI).to receive(:run)
+
+          # Mock switch_into_worktree for switching back
+          allow(Nitl::Interfaces::Shell).to receive(:switch_into_worktree).with('master')
+
+          Dir.chdir(tmpdir) do
+            described_class.run(issue_number)
+          end
+
+          # Verify that gh issue view was called
+          expect(Nitl::Interfaces::Shell).to have_received(:run_command)
+            .with("gh issue view #{issue_number}")
+        end
+      end
+
+      it 'exits with error if GitHub issue fetch fails' do
+        Dir.mktmpdir do |tmpdir|
+          FileUtils.mkdir_p(File.join(tmpdir, '.git'))
+          FileUtils.mkdir_p(File.join(tmpdir, '.nitl', 'plans'))
+
+          # Mock git branch --show-current
+          allow(Nitl::Interfaces::Shell).to receive(:run_command)
+            .with('git branch --show-current')
+            .and_return(['master', '', true])
+
+          # Mock get_worktrees
+          allow(Nitl::Interfaces::Shell).to receive(:get_worktrees).and_return([])
+
+          # Mock git rev-parse
+          allow(Nitl::Interfaces::Shell).to receive(:run_command)
+            .with('git rev-parse --show-toplevel')
+            .and_return([tmpdir, '', true])
+
+          # Mock switch_into_worktree
+          allow(Nitl::Interfaces::Shell).to receive(:switch_into_worktree) do |branch, _options|
+            # Stay in tmpdir for test
+          end
+
+          # Mock gh issue view to fail
+          allow(Nitl::Interfaces::Shell).to receive(:run_command)
+            .with("gh issue view #{issue_number}")
+            .and_return(['', 'Issue not found', false])
 
           Dir.chdir(tmpdir) do
             expect { described_class.run(issue_number) }.to raise_error(SystemExit) do |error|
@@ -48,6 +121,11 @@ RSpec.describe Nitl::Run::ExecutePlan do
             worktree_plan_file = File.join(worktree_path, plan_file)
             File.write(worktree_plan_file, '# Test plan')
             worktree_secrets_file = File.join(worktree_path, secrets_file)
+
+            # Mock git branch --show-current
+            allow(Nitl::Interfaces::Shell).to receive(:run_command)
+              .with('git branch --show-current')
+              .and_return(['master', '', true])
 
             # Mock git rev-parse to return main repo root
             allow(Nitl::Interfaces::Shell).to receive(:run_command)
@@ -103,6 +181,11 @@ RSpec.describe Nitl::Run::ExecutePlan do
             File.write(worktree_plan_file, '# Test plan')
             worktree_secrets_file = File.join(worktree_path, secrets_file)
 
+            # Mock git branch --show-current
+            allow(Nitl::Interfaces::Shell).to receive(:run_command)
+              .with('git branch --show-current')
+              .and_return(['master', '', true])
+
             # Mock git rev-parse to return main repo root
             allow(Nitl::Interfaces::Shell).to receive(:run_command)
               .with('git rev-parse --show-toplevel')
@@ -154,6 +237,11 @@ RSpec.describe Nitl::Run::ExecutePlan do
           # Create secrets.yaml in main repo
           FileUtils.mkdir_p(File.join(tmpdir, '.nitl'))
           File.write(File.join(tmpdir, secrets_file), "ci_api_token: main-token\n")
+
+          # Mock git branch --show-current
+          allow(Nitl::Interfaces::Shell).to receive(:run_command)
+            .with('git branch --show-current')
+            .and_return(['master', '', true])
 
           # Mock get_worktrees to return existing worktree
           allow(Nitl::Interfaces::Shell).to receive(:get_worktrees)

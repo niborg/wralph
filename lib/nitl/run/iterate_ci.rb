@@ -20,7 +20,8 @@ module Nitl
           pr_num.empty? || pr_num == 'null' ? nil : pr_num
         end
 
-        current_branch = `git branch --show-current`.strip
+        stdout, = Interfaces::Shell.run_command('git branch --show-current')
+        current_branch = stdout.strip
         if current_branch != branch_name
           Interfaces::Print.error "You are not on the branch #{branch_name}. Please switch to the branch #{branch_name} and try again."
           exit 1

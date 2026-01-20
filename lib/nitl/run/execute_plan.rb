@@ -11,14 +11,11 @@ module Nitl
     module ExecutePlan
       def self.run(issue_number)
         plan_file = Interfaces::Repo.plan_file(issue_number)
-
-        unless File.exist?(plan_file)
-          Interfaces::Print.error "Plan file '#{plan_file}' not found. Please create a plan first."
-          exit 1
-        end
+        plan_exists = File.exist?(plan_file)
 
         branch_name = "issue-#{issue_number}".freeze
-        current_branch = `git branch --show-current`.strip # To switch back later
+        stdout, = Interfaces::Shell.run_command('git branch --show-current')
+        current_branch = stdout.strip
 
         # Check if worktree already exists, if not, create it and copy secrets.yaml
         worktrees = Interfaces::Shell.get_worktrees
@@ -45,24 +42,57 @@ module Nitl
           Interfaces::Shell.switch_into_worktree(branch_name)
         end
 
-        execution_instructions = <<~EXECUTION_INSTRUCTIONS
-          You previously created a plan to solve GitHub issue ##{issue_number}. You can find the plan in the file: `#{plan_file}`. You have been placed in a git worktree for the branch `#{branch_name}`.
+        # Build execution instructions based on whether plan exists
+        if plan_exists
+          execution_instructions = <<~EXECUTION_INSTRUCTIONS
+            You previously created a plan to solve GitHub issue ##{issue_number}. You can find the plan in the file: `#{plan_file}`. You have been placed in a git worktree for the branch `#{branch_name}`.
 
-          Do as follows:
+            Do as follows:
 
-          1. Execute your plan:
-             - Make the necessary changes to solve the issue
-             - Commit your changes (including the plan) with a descriptive message that references the issue
-             - Push the branch to GitHub
-             - Create a pull request, referencing the issue in the body like "Fixes ##{issue_number}"
+            1. Execute your plan:
+               - Make the necessary changes to solve the issue
+               - Commit your changes (including the plan) with a descriptive message that references the issue
+               - Push the branch to GitHub
+               - Create a pull request, referencing the issue in the body like "Fixes ##{issue_number}"
 
-          2. After creating the PR, output the PR number and its URL so I can track it.
+            2. After creating the PR, output the PR number and its URL so I can track it.
 
-          Please proceed with these steps.
-        EXECUTION_INSTRUCTIONS
+            Please proceed with these steps.
+          EXECUTION_INSTRUCTIONS
+          Interfaces::Print.info "Running Claude Code to execute the plan #{plan_file}..."
+        else
+          # Fetch GitHub issue content
+          Interfaces::Print.info "No plan found. Fetching GitHub issue ##{issue_number}..."
+          issue_content, _, success = Interfaces::Shell.run_command("gh issue view #{issue_number}")
+
+          unless success
+            Interfaces::Print.error "Failed to fetch GitHub issue ##{issue_number}. Please check the issue number and your GitHub CLI authentication."
+            exit 1
+          end
+
+          execution_instructions = <<~EXECUTION_INSTRUCTIONS
+            I need you to solve GitHub issue ##{issue_number}. You have been placed in a git worktree for the branch `#{branch_name}`.
+
+            Issue details:
+            #{issue_content}
+
+            Do as follows:
+
+            1. Solve the issue:
+               - Read and understand the issue requirements
+               - Make the necessary code changes to solve the issue
+               - Commit your changes with a descriptive message that references the issue (e.g., "Fixes ##{issue_number}")
+               - Push the branch to GitHub
+               - Create a pull request, referencing the issue in the body like "Fixes ##{issue_number}"
+
+            2. After creating the PR, output the PR number and its URL so I can track it.
+
+            Please proceed with these steps.
+          EXECUTION_INSTRUCTIONS
+          Interfaces::Print.info "Running Claude Code to solve GitHub issue ##{issue_number}..."
+        end
 
         # Run claude code with instructions
-        Interfaces::Print.info "Running Claude Code to execute the plan #{plan_file}..."
         claude_output = Interfaces::Agent.run(execution_instructions)
         puts "CLAUDE_OUTPUT: #{claude_output}"
 

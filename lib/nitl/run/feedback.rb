@@ -23,7 +23,8 @@ module Nitl
         branch_name = "issue-#{issue_number}".freeze
         plan_file = Interfaces::Repo.plan_file(issue_number)
 
-        current_branch = `git branch --show-current`.strip
+        stdout, = Interfaces::Shell.run_command('git branch --show-current')
+        current_branch = stdout.strip
         Interfaces::Shell.switch_into_worktree(branch_name, create_if_not_exists: false)
 
         # Check that the Pull Request is open
