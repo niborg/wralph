@@ -42,7 +42,7 @@ module Wralph
       end
 
       def self.plan_file(issue_number)
-        File.join(plans_dir, "plan_gh_issue_no_#{issue_number}.md")
+        File.join(plans_dir, "plan_#{issue_number}.md")
       end
 
       def self.env_file

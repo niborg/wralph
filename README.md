@@ -94,7 +94,7 @@ wralph plan 123
 
 This command:
 - Fetches GitHub issue #123
-- Uses Claude Code to generate a detailed plan saved to `.wralph/plans/plan_gh_issue_no_123.md`
+- Uses Claude Code to generate a detailed plan saved to `.wralph/plans/plan_123.md`
 - Prompts you to review and approve the plan
 - Automatically proceeds to execution once approved
 
@@ -164,7 +164,7 @@ The tool creates and manages the following:
 ├── .env                          # Environment variables (you create this)
 ├── .wralph/                      # WRALPH configuration directory (created by `wralph init`)
 │   └── plans/                    # Generated plans
-│       └── plan_gh_issue_no_123.md  # Example plan file
+│       └── plan_123.md  # Example plan file
 ├── tmp/                          # CI failure details (created automatically)
 │   └── issue-123_failure_details_1_1.txt
 └── [worktree directories]        # Managed by worktrunk
@@ -200,7 +200,7 @@ wralph init
 # 3. Generate and execute plan:
 wralph plan 456
 
-# Review the generated plan at .wralph/plans/plan_gh_issue_no_456.md
+# Review the generated plan at .wralph/plans/plan_456.md
 # Answer any questions Claude asked, then approve
 
 # 4. Command automatically:

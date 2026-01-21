@@ -55,7 +55,7 @@ RSpec.describe Wralph::Interfaces::Repo do
   describe '.plan_file' do
     it 'returns the correct path for a plan file' do
       issue_number = '123'
-      expected_path = File.join(Wralph::Interfaces::Repo.repo_root, '.wralph', 'plans', "plan_gh_issue_no_#{issue_number}.md")
+      expected_path = File.join(Wralph::Interfaces::Repo.repo_root, '.wralph', 'plans', "plan_#{issue_number}.md")
       expect(Wralph::Interfaces::Repo.plan_file(issue_number)).to eq(expected_path)
     end
   end

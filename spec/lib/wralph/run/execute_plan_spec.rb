@@ -8,7 +8,7 @@ RSpec.describe Wralph::Run::ExecutePlan do
   describe '.run' do
     let(:issue_number) { '123' }
     let(:branch_name) { "issue-#{issue_number}" }
-    let(:plan_file) { File.join('.wralph', 'plans', "plan_gh_issue_no_#{issue_number}.md") }
+    let(:plan_file) { File.join('.wralph', 'plans', "plan_#{issue_number}.md") }
     let(:secrets_file) { File.join('.wralph', 'secrets.yaml') }
 
     before do
