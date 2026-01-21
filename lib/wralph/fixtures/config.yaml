@@ -1,0 +1,10 @@
+# WRALPH Configuration
+# Configure which adapters to use for different components
+
+# Where the objectives, PRDs, or other issue write-ups are stored.
+objective_repository:
+  # You can specify a "custom" source, just provide a class that implements
+  # the ObjectiveRepository interface and specify the class_name below. The
+  # file containing the class must be in the .wralph directory and track the
+  # class name in snake_case, e.g.: my_custom_objective_repository.rb
+  source: github_issues

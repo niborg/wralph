@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require_relative 'wralph/version'
+require_relative 'wralph/config'
 require_relative 'wralph/interfaces/repo'
 require_relative 'wralph/interfaces/print'
 require_relative 'wralph/interfaces/shell'

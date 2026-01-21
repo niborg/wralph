@@ -53,8 +53,20 @@ module Wralph
         File.join(wralph_dir, 'secrets.yaml')
       end
 
+      def self.config_file
+        File.join(wralph_dir, 'config.yaml')
+      end
+
       def self.failure_details_file(branch_name, retry_count)
         File.join(tmp_dir, "#{branch_name}_failure_details_#{retry_count}_#{retry_count}.txt")
+      end
+
+      def self.fixtures_dir
+        File.join(__dir__, '..', 'fixtures')
+      end
+
+      def self.fixture_file(filename)
+        File.join(fixtures_dir, filename)
       end
     end
   end

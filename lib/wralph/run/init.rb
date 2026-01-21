@@ -28,16 +28,25 @@ module Wralph
         # Create secrets.yaml template
         secrets_file = Interfaces::Repo.secrets_file
         unless File.exist?(secrets_file)
-          secrets_template = <<~YAML
-            # WRALPH Secrets Configuration
-            # Add your CI API tokens and other secrets here
-            # This file is git-ignored for security
+          secrets_fixture = Interfaces::Repo.fixture_file('secrets.yaml')
+          if File.exist?(secrets_fixture)
+            FileUtils.cp(secrets_fixture, secrets_file)
+            Interfaces::Print.success "Created .wralph/secrets.yaml template"
+          else
+            Interfaces::Print.warning "Fixture file not found: #{secrets_fixture}"
+          end
+        end
 
-            ci_api_token: # Add your CircleCI API token here
-          YAML
-
-          File.write(secrets_file, secrets_template)
-          Interfaces::Print.success "Created .wralph/secrets.yaml template"
+        # Create config.yaml template
+        config_file = Interfaces::Repo.config_file
+        unless File.exist?(config_file)
+          config_fixture = Interfaces::Repo.fixture_file('config.yaml')
+          if File.exist?(config_fixture)
+            FileUtils.cp(config_fixture, config_file)
+            Interfaces::Print.success "Created .wralph/config.yaml template"
+          else
+            Interfaces::Print.warning "Fixture file not found: #{config_fixture}"
+          end
         end
 
         # Ensure .wralph/secrets.yaml is in .gitignore

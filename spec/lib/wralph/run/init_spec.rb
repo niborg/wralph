@@ -17,11 +17,15 @@ RSpec.describe Wralph::Run::Init do
           wralph_dir = File.join(tmpdir, '.wralph')
           plans_dir = File.join(wralph_dir, 'plans')
           secrets_file = File.join(wralph_dir, 'secrets.yaml')
+          config_file = File.join(wralph_dir, 'config.yaml')
 
           expect(Dir.exist?(wralph_dir)).to be true
           expect(Dir.exist?(plans_dir)).to be true
           expect(File.exist?(secrets_file)).to be true
           expect(File.read(secrets_file)).to include('ci_api_token')
+          expect(File.exist?(config_file)).to be true
+          expect(File.read(config_file)).to include('objective_repository')
+          expect(File.read(config_file)).to include('source: github_issues')
         end
       end
     end
@@ -59,6 +63,29 @@ RSpec.describe Wralph::Run::Init do
 
           # Verify secrets.yaml was not overwritten
           expect(File.read(secrets_file)).to eq(custom_secrets)
+        end
+      end
+    end
+
+    it 'does not overwrite config.yaml if it already exists' do
+      Dir.mktmpdir do |tmpdir|
+        git_dir = File.join(tmpdir, '.git')
+        Dir.mkdir(git_dir)
+
+        Dir.chdir(tmpdir) do
+          wralph_dir = File.join(tmpdir, '.wralph')
+          config_file = File.join(wralph_dir, 'config.yaml')
+
+          # Create .wralph directory and custom config.yaml
+          FileUtils.mkdir_p(wralph_dir)
+          custom_config = "objective_repository:\n  source: custom_source\n"
+          File.write(config_file, custom_config)
+
+          # Run init
+          Wralph::Run::Init.run
+
+          # Verify config.yaml was not overwritten
+          expect(File.read(config_file)).to eq(custom_config)
         end
       end
     end
