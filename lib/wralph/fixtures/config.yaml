@@ -8,3 +8,11 @@ objective_repository:
   # file containing the class must be in the .wralph directory and track the
   # class name in snake_case, e.g.: my_custom_objective_repository.rb
   source: github_issues
+
+# CI/CD system adapter configuration
+ci:
+  # You can specify a "custom" source, just provide a class that implements
+  # the CI interface and specify the class_name below. The file containing
+  # the class must be in the .wralph directory and track the class name in
+  # snake_case, e.g.: my_custom_ci_adapter.rb
+  source: circle_ci

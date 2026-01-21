@@ -10,9 +10,9 @@ This toolset provides a streamlined workflow for fixing bugs, implementing featu
 
 What sets WRALPH apart from other autonomous development tools is its explicit use of **non-AI components** to facilitate the workflow and allow multiple instances running (even on the same repository) without interference:
 
-- **Issue Repository**: Plans are generated from structured GitHub issues, providing clear requirements and context
+- **Issue Repository**: Plans are generated from structured issue repositories (default: GitHub issues), providing clear requirements and context
 - **Git Worktrees**: Each issue gets its own isolated worktree, ensuring clean separation and preventing conflicts
-- **Remote CI Evaluation**: Results are evaluated using remote CI (CircleCI), which allows multiple instances of WRALPH to run in parallel without interfering with each other
+- **Remote CI Evaluation**: Results are evaluated using remote CI (default: CircleCI), which allows multiple instances of WRALPH to run in parallel without interfering with each other
 
 The remote CI feature is particularly powerful—it enables you to run multiple instances of WRALPH simultaneously, each working on different issues, without the processes stepping on each other. This parallel execution capability makes WRALPH highly scalable for teams working on multiple issues concurrently.
 
@@ -54,13 +54,38 @@ Before using these scripts, ensure you have the following tools installed:
 
 ## Configuration
 
-Create a `.env` file in the repository root with your CircleCI API token:
+After running `wralph init`, you'll have a `.wralph` directory with configuration files:
 
-```bash
-CIRCLE_CI_API_TOKEN=your_token_here
+### Secrets (`secrets.yaml`)
+
+Add your CI API token to `.wralph/secrets.yaml`:
+
+```yaml
+ci_api_token: your_token_here
 ```
 
-The scripts automatically load environment variables from this file. The CircleCI token is required for monitoring build status and fetching failure details.
+This file is automatically git-ignored for security.
+
+### Adapter Configuration (`config.yaml`)
+
+The `.wralph/config.yaml` file allows you to configure which adapters to use:
+
+```yaml
+# Objective repository adapter (where issues/objectives are stored)
+objective_repository:
+  source: github_issues  # or "custom" with class_name
+
+# CI/CD adapter (for build monitoring)
+ci:
+  source: circle_ci  # or "custom" with class_name
+```
+
+**Custom Adapters**: You can create custom adapters by:
+1. Setting `source: custom` in the config
+2. Specifying a `class_name` (e.g., `MyCustomAdapter`)
+3. Creating a file `.wralph/my_custom_adapter.rb` with your class implementation
+
+See the config file comments for more details on creating custom adapters.
 
 ## Installation
 
@@ -111,7 +136,7 @@ After plan approval, `wralph plan` automatically:
 - Uses Claude Code to implement the plan
 - Commits changes (including the plan file) with a descriptive message
 - Pushes the branch and creates a pull request
-- Monitors CircleCI build status for the PR
+- Monitors CI build status for the PR (default: CircleCI)
 - If CI fails: extracts failure details, uses Claude Code to fix issues, pushes fixes, and iterates (up to 10 retries)
 - If CI passes: exits successfully
 
@@ -161,10 +186,11 @@ The tool creates and manages the following:
 
 ```
 .
-├── .env                          # Environment variables (you create this)
 ├── .wralph/                      # WRALPH configuration directory (created by `wralph init`)
+│   ├── config.yaml               # Adapter configuration (objective_repository, ci)
+│   ├── secrets.yaml              # API tokens and secrets (git-ignored)
 │   └── plans/                    # Generated plans
-│       └── plan_123.md  # Example plan file
+│       └── plan_123.md           # Example plan file
 ├── tmp/                          # CI failure details (created automatically)
 │   └── issue-123_failure_details_1_1.txt
 └── [worktree directories]        # Managed by worktrunk
@@ -173,7 +199,8 @@ The tool creates and manages the following:
 ## Key Features
 
 - **Worktree Isolation**: Each issue gets its own git worktree via worktrunk, keeping your main working directory clean
-- **Automatic CI Integration**: Monitors CircleCI builds, extracts failure details, and iteratively fixes issues
+- **Automatic CI Integration**: Monitors CI builds (configurable adapter), extracts failure details, and iteratively fixes issues
+- **Configurable Adapters**: Support for custom objective repositories and CI adapters via configuration
 - **Human Oversight**: Plans require approval before execution, and PRs can be reviewed before merging
 - **Failure Recovery**: Automatically retries up to 10 times to fix CI failures
 - **Branch Management**: Automatic branch creation, PR creation, and cleanup utilities

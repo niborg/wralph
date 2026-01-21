@@ -62,6 +62,9 @@ module Wralph
         {
           'objective_repository' => {
             'source' => 'github_issues'
+          },
+          'ci' => {
+            'source' => 'circle_ci'
           }
         }
       end
