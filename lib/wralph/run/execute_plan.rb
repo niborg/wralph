@@ -18,7 +18,7 @@ module Wralph
         stdout, = Interfaces::Shell.run_command('git branch --show-current')
         current_branch = stdout.strip
 
-        # Check if worktree already exists, if not, create it and copy secrets.yaml
+        # Check if worktree already exists, if not, create it and copy .wralph directory
         worktrees = Interfaces::Shell.get_worktrees
         worktree_exists = worktrees.any? { |wt| wt['branch'] == branch_name }
 
@@ -27,17 +27,44 @@ module Wralph
           # Use git rev-parse to reliably get the main repo root even from within a worktree
           stdout, _, success = Interfaces::Shell.run_command('git rev-parse --show-toplevel')
           main_repo_root = success && !stdout.empty? ? stdout.strip : Interfaces::Repo.repo_root
-          main_secrets_file = File.join(main_repo_root, '.wralph', 'secrets.yaml')
+          main_wralph_dir = File.join(main_repo_root, '.wralph')
 
           # Create the worktree
           Interfaces::Shell.switch_into_worktree(branch_name)
 
-          # Copy secrets.yaml from main repo to the new worktree
-          if File.exist?(main_secrets_file)
+          # Copy entire .wralph directory from main repo to the new worktree
+          if Dir.exist?(main_wralph_dir)
             require 'fileutils'
-            worktree_secrets_file = Interfaces::Repo.secrets_file
-            FileUtils.mkdir_p(File.dirname(worktree_secrets_file))
-            FileUtils.cp(main_secrets_file, worktree_secrets_file)
+            worktree_wralph_dir = Interfaces::Repo.wralph_dir
+
+            # Only copy if source and destination are different (should always be true in real usage)
+            main_wralph_expanded = File.expand_path(main_wralph_dir)
+            worktree_wralph_expanded = File.expand_path(worktree_wralph_dir)
+
+            if main_wralph_expanded != worktree_wralph_expanded
+              FileUtils.mkdir_p(worktree_wralph_dir)
+              # Copy all contents from main .wralph to worktree .wralph
+              Dir.glob(File.join(main_wralph_dir, '*'), File::FNM_DOTMATCH).each do |item|
+                next if ['.', '..'].include?(File.basename(item))
+
+                dest_item = File.join(worktree_wralph_dir, File.basename(item))
+                # Skip if source and destination are the same (can happen in tests)
+                item_expanded = File.expand_path(item)
+                dest_item_expanded = File.expand_path(dest_item)
+                next if item_expanded == dest_item_expanded
+                # Skip if destination is inside source (would cause recursive copy error)
+                next if dest_item_expanded.start_with?(item_expanded + File::SEPARATOR)
+
+                begin
+                  FileUtils.cp_r(item, dest_item)
+                rescue ArgumentError => e
+                  # Handle edge case where source and dest are the same (can happen in tests)
+                  next if e.message.include?('cannot copy') && e.message.include?('to itself')
+
+                  raise
+                end
+              end
+            end
           end
         else
           Interfaces::Shell.switch_into_worktree(branch_name)

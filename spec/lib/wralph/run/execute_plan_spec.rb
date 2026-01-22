@@ -105,22 +105,25 @@ RSpec.describe Wralph::Run::ExecutePlan do
     end
 
     context 'when creating a new worktree' do
-      it 'copies secrets.yaml from main repo to worktree' do
+      it 'copies entire .wralph directory from main repo to worktree' do
         Dir.mktmpdir do |main_repo|
           Dir.mktmpdir do |worktree_path|
-            # Setup main repo
+            # Setup main repo with .wralph directory containing multiple files
             FileUtils.mkdir_p(File.join(main_repo, '.git'))
             FileUtils.mkdir_p(File.join(main_repo, '.wralph', 'plans'))
             main_plan_file = File.join(main_repo, plan_file)
             File.write(main_plan_file, '# Test plan')
             main_secrets_file = File.join(main_repo, secrets_file)
             File.write(main_secrets_file, "ci_api_token: test-token\n")
+            main_config_file = File.join(main_repo, '.wralph', 'config.yaml')
+            File.write(main_config_file, "objective_repository: github_issues\n")
 
             # Setup worktree directory structure (simulated)
             FileUtils.mkdir_p(File.join(worktree_path, '.wralph', 'plans'))
             worktree_plan_file = File.join(worktree_path, plan_file)
             File.write(worktree_plan_file, '# Test plan')
             worktree_secrets_file = File.join(worktree_path, secrets_file)
+            worktree_config_file = File.join(worktree_path, '.wralph', 'config.yaml')
 
             # Mock git branch --show-current
             allow(Wralph::Interfaces::Shell).to receive(:run_command)
@@ -141,8 +144,10 @@ RSpec.describe Wralph::Run::ExecutePlan do
               Dir.chdir(worktree_path)
             end
 
-            # Mock Repo.secrets_file to return worktree secrets path when in worktree
+            # Mock Repo methods to return worktree paths when in worktree
+            allow(Wralph::Interfaces::Repo).to receive(:wralph_dir).and_return(File.join(worktree_path, '.wralph'))
             allow(Wralph::Interfaces::Repo).to receive(:secrets_file).and_return(worktree_secrets_file)
+            allow(Wralph::Interfaces::Repo).to receive(:config_file).and_return(worktree_config_file)
 
             # Mock Agent.run to return PR info
             allow(Wralph::Interfaces::Agent).to receive(:run).and_return('PR Number: 456')
@@ -159,21 +164,24 @@ RSpec.describe Wralph::Run::ExecutePlan do
               described_class.run(issue_number)
             end
 
-            # Verify secrets.yaml was copied to worktree
+            # Verify all .wralph files were copied to worktree
             expect(File.exist?(worktree_secrets_file)).to be true
             expect(File.read(worktree_secrets_file)).to eq("ci_api_token: test-token\n")
+            expect(File.exist?(worktree_config_file)).to be true
+            expect(File.read(worktree_config_file)).to eq("objective_repository: github_issues\n")
+            # Verify plans directory was copied
+            expect(File.exist?(File.join(worktree_path, '.wralph', 'plans'))).to be true
+            expect(File.exist?(File.join(worktree_path, plan_file))).to be true
+            expect(File.read(File.join(worktree_path, plan_file))).to eq('# Test plan')
           end
         end
       end
 
-      it 'does not copy secrets.yaml if it does not exist in main repo' do
+      it 'does not copy .wralph directory if it does not exist in main repo' do
         Dir.mktmpdir do |main_repo|
           Dir.mktmpdir do |worktree_path|
-            # Setup main repo WITHOUT secrets.yaml
+            # Setup main repo WITHOUT .wralph directory
             FileUtils.mkdir_p(File.join(main_repo, '.git'))
-            FileUtils.mkdir_p(File.join(main_repo, '.wralph', 'plans'))
-            main_plan_file = File.join(main_repo, plan_file)
-            File.write(main_plan_file, '# Test plan')
 
             # Setup worktree directory structure
             FileUtils.mkdir_p(File.join(worktree_path, '.wralph', 'plans'))
@@ -199,7 +207,8 @@ RSpec.describe Wralph::Run::ExecutePlan do
               Dir.chdir(worktree_path)
             end
 
-            # Mock Repo.secrets_file
+            # Mock Repo methods
+            allow(Wralph::Interfaces::Repo).to receive(:wralph_dir).and_return(File.join(worktree_path, '.wralph'))
             allow(Wralph::Interfaces::Repo).to receive(:secrets_file).and_return(worktree_secrets_file)
 
             # Mock Agent.run
@@ -214,11 +223,12 @@ RSpec.describe Wralph::Run::ExecutePlan do
             end
 
             Dir.chdir(worktree_path) do
-              # Should not raise an error even though secrets.yaml doesn't exist
+              # Should not raise an error even though .wralph doesn't exist in main repo
               expect { described_class.run(issue_number) }.not_to raise_error
             end
 
-            # Verify secrets.yaml was NOT created in worktree
+            # Verify .wralph directory was NOT copied to worktree (only the pre-existing structure remains)
+            # The worktree already had .wralph/plans from setup, but secrets.yaml should not exist
             expect(File.exist?(worktree_secrets_file)).to be false
           end
         end
@@ -226,7 +236,7 @@ RSpec.describe Wralph::Run::ExecutePlan do
     end
 
     context 'when worktree already exists' do
-      it 'does not copy secrets.yaml' do
+      it 'does not copy .wralph directory' do
         Dir.mktmpdir do |tmpdir|
           FileUtils.mkdir_p(File.join(tmpdir, '.git'))
 
