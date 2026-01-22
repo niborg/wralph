@@ -1,21 +1,35 @@
-name: Release
+name: Release and Bump Homebrew
 
 on:
   push:
     tags:
-      - 'v*' # Triggers on any tag like v0.1.0, v0.2.0
+      - 'v*'
 
 permissions:
   contents: write
 
 jobs:
-  build:
+  release:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Create Release
+      - uses: actions/checkout@v4
+      - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
         with:
           generate_release_notes: true
+
+  bump-homebrew:
+    needs: release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Update Homebrew Formula
+        uses: dawidd6/action-homebrew-bump-formula@v3
+        with:
+          # The name of your tool
+          formula: wralph
+          # Your Tap repository
+          tap: niborg/homebrew-wralph
+          # The Secret you created
+          token: ${{ secrets.COMMITTER_TOKEN }}
+          # Use the tag as the version
+          tag: ${{ github.ref_name }}
