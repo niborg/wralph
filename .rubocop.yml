@@ -1,0 +1,59 @@
+# RuboCop configuration for wralph
+
+# Disable complexity and nesting cops
+Metrics/AbcSize:
+  Enabled: false
+
+Metrics/ClassLength:
+  Enabled: false
+
+Metrics/ModuleLength:
+  Enabled: false
+
+Metrics/MethodLength:
+  Enabled: false
+
+Metrics/BlockLength:
+  Enabled: false
+
+Metrics/CyclomaticComplexity:
+  Enabled: false
+
+Metrics/PerceivedComplexity:
+  Enabled: false
+
+Metrics/BlockNesting:
+  Enabled: false
+
+# Hash formatting: no spaces inside braces
+Layout/SpaceInsideHashLiteralBraces:
+  Enabled: true
+  EnforcedStyle: no_space
+
+# Allow both single and double quoted strings
+Style/StringLiterals:
+  Enabled: false
+
+# Skip frozen string literal requirement
+Style/FrozenStringLiteralComment:
+  Enabled: false
+
+# Allow using $0 instead of PROGRAM_NAME
+Style/SpecialGlobalVars:
+  Enabled: false
+
+# Disable line length restrictions
+Layout/LineLength:
+  Enabled: false
+
+# Skip top-level comment requirement
+Style/Documentation:
+  Enabled: false
+
+# Disable accessor method name restrictions
+Naming/AccessorMethodName:
+  Enabled: false
+
+# Disable multiline block chain restrictions
+Style/MultilineBlockChain:
+  Enabled: false

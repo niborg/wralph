@@ -33,6 +33,8 @@ module Wralph
             default_config
           end
         end
+
+        @config
       end
 
       def reload

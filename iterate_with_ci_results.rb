@@ -39,7 +39,6 @@ retry_count = 0
 # Get repository info
 repo_owner, = run_command('gh repo view --json owner -q .owner.login')
 repo_name, = run_command('gh repo view --json name -q .name')
-repo_full_name = "#{repo_owner}/#{repo_name}"
 
 while retry_count < MAX_RETRIES
   print_info "Iteration #{retry_count + 1}/#{MAX_RETRIES}"
@@ -59,9 +58,7 @@ while retry_count < MAX_RETRIES
 
   retry_count += 1
 
-  if retry_count >= MAX_RETRIES
-    print_error "Maximum retry count (#{MAX_RETRIES}) reached. Please fix the issues manually."
-  end
+  print_error "Maximum retry count (#{MAX_RETRIES}) reached. Please fix the issues manually." if retry_count >= MAX_RETRIES
 
   # Store the failure details in a new file for each iteration
   filename = "tmp/#{BRANCH_NAME}_failure_details_#{retry_count}_#{retry_count}.txt"

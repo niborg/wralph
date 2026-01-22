@@ -22,7 +22,7 @@ module Wralph
 
       def self.get_worktrees
         json_output, = run_command("wt list --format=json")
-        JSON.parse(json_output)
+        JSON.parse(json_output.force_encoding('UTF-8'))
       end
 
       def self.switch_into_worktree(branch_name, create_if_not_exists: true)
@@ -34,18 +34,16 @@ module Wralph
             Print.error "Failed to switch to branch #{branch_name}"
             exit 1
           end
-        else
-          if create_if_not_exists
-            success = system("wt switch --create #{branch_name}")
-            unless success
-              Print.error "Failed to switch to branch #{branch_name}"
-              exit 1
-            end
-            worktree = get_worktrees.find { |wt| wt['branch'] == branch_name }
-          else
-            Print.error "Worktree for branch #{branch_name} not found. Use --create to create it."
+        elsif create_if_not_exists
+          success = system("wt switch --create #{branch_name}")
+          unless success
+            Print.error "Failed to switch to branch #{branch_name}"
             exit 1
           end
+          worktree = get_worktrees.find { |wt| wt['branch'] == branch_name }
+        else
+          Print.error "Worktree for branch #{branch_name} not found. Use --create to create it."
+          exit 1
         end
 
         # Change the directory of the CURRENT Ruby process to the new worktree

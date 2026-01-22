@@ -18,8 +18,6 @@ module Wralph
         @adapter = nil
       end
 
-      private
-
       def self.adapter
         @adapter ||= load_adapter
       end
@@ -45,9 +43,7 @@ module Wralph
         file_name = class_name_to_snake_case(class_name)
         adapter_file = File.join(Repo.wralph_dir, "#{file_name}.rb")
 
-        unless File.exist?(adapter_file)
-          raise "Custom adapter file not found: #{adapter_file}"
-        end
+        raise "Custom adapter file not found: #{adapter_file}" unless File.exist?(adapter_file)
 
         # Load the file
         load adapter_file
@@ -73,12 +69,12 @@ module Wralph
       end
 
       def self.validate_adapter_interface(klass)
-        required_methods = [:download!, :local_file_path]
+        required_methods = %i[download! local_file_path]
         missing_methods = required_methods.reject { |method| klass.respond_to?(method) }
 
-        unless missing_methods.empty?
-          raise "Custom adapter class must implement: #{missing_methods.join(', ')}"
-        end
+        return if missing_methods.empty?
+
+        raise "Custom adapter class must implement: #{missing_methods.join(', ')}"
       end
     end
   end

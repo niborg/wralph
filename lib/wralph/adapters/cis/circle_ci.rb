@@ -122,7 +122,6 @@ module Wralph
 
           Interfaces::Print.error 'Timeout waiting for CircleCI build to complete'
           exit 1
-          false
         end
 
         # Get CircleCI build failures
@@ -144,13 +143,13 @@ module Wralph
 
           # 3. Get the workflow ID
           workflow_url = "https://circleci.com/api/v2/pipeline/#{pipeline_id}/workflow"
-          stdout, success = http_get(workflow_url, api_token: api_token)
+          stdout, = http_get(workflow_url, api_token: api_token)
           workflow_id = JSON.parse(stdout)['items']&.first&.[]('id')
           return 'No workflow found' unless workflow_id
 
           # 4. Get jobs and filter for failures
           jobs_url = "https://circleci.com/api/v2/workflow/#{workflow_id}/job"
-          stdout, success = http_get(jobs_url, api_token: api_token)
+          stdout, = http_get(jobs_url, api_token: api_token)
           jobs_data = JSON.parse(stdout)
 
           failed_jobs = jobs_data['items']&.select { |j| %w[failed error].include?(j['status']) }
@@ -184,7 +183,7 @@ module Wralph
                     # Join the last 30 lines of the log for context
                     tail_logs = logs.map { |l| l['message'] }.last(30).join("\n")
                     log_content += "\nFAILED STEP: #{failed_step['name']}\n\nLOG TAIL:\n#{tail_logs}"
-                  rescue
+                  rescue StandardError
                     log_content += "\n(Could not parse raw log output)"
                   end
                 end
@@ -192,7 +191,7 @@ module Wralph
             end
 
             log_content
-          end.join("\n\n" + "=" * 40 + "\n\n")
+          end.join("\n\n#{'=' * 40}\n\n")
         end
       end
     end

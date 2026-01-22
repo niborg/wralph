@@ -11,7 +11,7 @@ PLAN_FILE = "#{PLANS_DIR}/plan_gh_issue_no_#{ISSUE_NUMBER}.md".freeze
 BRANCH_NAME = "issue-#{ISSUE_NUMBER}".freeze
 MAX_RETRIES = 10
 
-if !File.exist?(PLAN_FILE)
+unless File.exist?(PLAN_FILE)
   print_error "Plan file '#{PLAN_FILE}' not found. Please create a plan first."
   exit 1
 end
@@ -41,10 +41,6 @@ EXECUTION_INSTRUCTIONS
 print_info "Running Claude Code to execute the plan #{PLAN_FILE}..."
 claude_output = run_claude(execution_instructions)
 puts "CLAUDE_OUTPUT: #{claude_output}"
-
-# Extract PR number from output (look for patterns like "PR #123", "**PR #123**", or "Pull Request #123")
-# Try multiple patterns in order of specificity to avoid false matches
-pr_number = nil
 
 # Pattern 1: Look for PR in URL format (most reliable and unambiguous)
 # Matches: https://github.com/owner/repo/pull/774

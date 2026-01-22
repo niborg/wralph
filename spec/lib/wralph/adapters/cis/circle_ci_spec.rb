@@ -28,7 +28,7 @@ RSpec.describe Wralph::Adapters::Cis::CircleCi do
 
     it "returns 'not_found' when pipeline request fails" do
       pipeline_url = "https://circleci.com/api/v2/project/#{project_slug}/pipeline?branch=#{branch_name}"
-      stub_request(:get, pipeline_url).with(headers: { 'Circle-Token' => api_token }).to_return(status: 404)
+      stub_request(:get, pipeline_url).with(headers: {'Circle-Token' => api_token}).to_return(status: 404)
 
       result = described_class.build_status(pr_number, repo_owner, repo_name, api_token, verbose: false)
 
@@ -37,8 +37,8 @@ RSpec.describe Wralph::Adapters::Cis::CircleCi do
 
     it "returns 'not_found' when pipeline has no items" do
       pipeline_url = "https://circleci.com/api/v2/project/#{project_slug}/pipeline?branch=#{branch_name}"
-      stub_request(:get, pipeline_url).with(headers: { 'Circle-Token' => api_token })
-        .to_return(status: 200, body: '{"items":[]}', headers: { 'Content-Type' => 'application/json' })
+      stub_request(:get, pipeline_url).with(headers: {'Circle-Token' => api_token})
+                                      .to_return(status: 200, body: '{"items":[]}', headers: {'Content-Type' => 'application/json'})
 
       result = described_class.build_status(pr_number, repo_owner, repo_name, api_token, verbose: false)
 
@@ -47,10 +47,10 @@ RSpec.describe Wralph::Adapters::Cis::CircleCi do
 
     it "returns 'running' when pipeline state is running" do
       pipeline_url = "https://circleci.com/api/v2/project/#{project_slug}/pipeline?branch=#{branch_name}"
-      stub_request(:get, pipeline_url).with(headers: { 'Circle-Token' => api_token }).to_return(
+      stub_request(:get, pipeline_url).with(headers: {'Circle-Token' => api_token}).to_return(
         status: 200,
-        body: { items: [{ id: 'pipeline-1', state: 'running' }] }.to_json,
-        headers: { 'Content-Type' => 'application/json' }
+        body: {items: [{id: 'pipeline-1', state: 'running'}]}.to_json,
+        headers: {'Content-Type' => 'application/json'}
       )
 
       result = described_class.build_status(pr_number, repo_owner, repo_name, api_token, verbose: false)
@@ -62,15 +62,15 @@ RSpec.describe Wralph::Adapters::Cis::CircleCi do
       pipeline_url = "https://circleci.com/api/v2/project/#{project_slug}/pipeline?branch=#{branch_name}"
       workflow_url = 'https://circleci.com/api/v2/pipeline/pipeline-1/workflow'
 
-      stub_request(:get, pipeline_url).with(headers: { 'Circle-Token' => api_token }).to_return(
+      stub_request(:get, pipeline_url).with(headers: {'Circle-Token' => api_token}).to_return(
         status: 200,
-        body: { items: [{ id: 'pipeline-1', state: 'errored' }] }.to_json,
-        headers: { 'Content-Type' => 'application/json' }
+        body: {items: [{id: 'pipeline-1', state: 'errored'}]}.to_json,
+        headers: {'Content-Type' => 'application/json'}
       )
-      stub_request(:get, workflow_url).with(headers: { 'Circle-Token' => api_token }).to_return(
+      stub_request(:get, workflow_url).with(headers: {'Circle-Token' => api_token}).to_return(
         status: 200,
-        body: { items: [{ status: 'success' }] }.to_json,
-        headers: { 'Content-Type' => 'application/json' }
+        body: {items: [{status: 'success'}]}.to_json,
+        headers: {'Content-Type' => 'application/json'}
       )
 
       result = described_class.build_status(pr_number, repo_owner, repo_name, api_token, verbose: false)
@@ -82,15 +82,15 @@ RSpec.describe Wralph::Adapters::Cis::CircleCi do
       pipeline_url = "https://circleci.com/api/v2/project/#{project_slug}/pipeline?branch=#{branch_name}"
       workflow_url = 'https://circleci.com/api/v2/pipeline/pipeline-1/workflow'
 
-      stub_request(:get, pipeline_url).with(headers: { 'Circle-Token' => api_token }).to_return(
+      stub_request(:get, pipeline_url).with(headers: {'Circle-Token' => api_token}).to_return(
         status: 200,
-        body: { items: [{ id: 'pipeline-1', state: 'errored' }] }.to_json,
-        headers: { 'Content-Type' => 'application/json' }
+        body: {items: [{id: 'pipeline-1', state: 'errored'}]}.to_json,
+        headers: {'Content-Type' => 'application/json'}
       )
-      stub_request(:get, workflow_url).with(headers: { 'Circle-Token' => api_token }).to_return(
+      stub_request(:get, workflow_url).with(headers: {'Circle-Token' => api_token}).to_return(
         status: 200,
-        body: { items: [{ status: 'failed' }] }.to_json,
-        headers: { 'Content-Type' => 'application/json' }
+        body: {items: [{status: 'failed'}]}.to_json,
+        headers: {'Content-Type' => 'application/json'}
       )
 
       result = described_class.build_status(pr_number, repo_owner, repo_name, api_token, verbose: false)
@@ -102,12 +102,12 @@ RSpec.describe Wralph::Adapters::Cis::CircleCi do
       pipeline_url = "https://circleci.com/api/v2/project/#{project_slug}/pipeline?branch=#{branch_name}"
       workflow_url = 'https://circleci.com/api/v2/pipeline/pipeline-1/workflow'
 
-      stub_request(:get, pipeline_url).with(headers: { 'Circle-Token' => api_token }).to_return(
+      stub_request(:get, pipeline_url).with(headers: {'Circle-Token' => api_token}).to_return(
         status: 200,
-        body: { items: [{ id: 'pipeline-1', state: 'errored' }] }.to_json,
-        headers: { 'Content-Type' => 'application/json' }
+        body: {items: [{id: 'pipeline-1', state: 'errored'}]}.to_json,
+        headers: {'Content-Type' => 'application/json'}
       )
-      stub_request(:get, workflow_url).with(headers: { 'Circle-Token' => api_token }).to_return(status: 404)
+      stub_request(:get, workflow_url).with(headers: {'Circle-Token' => api_token}).to_return(status: 404)
 
       result = described_class.build_status(pr_number, repo_owner, repo_name, api_token, verbose: false)
 
@@ -116,8 +116,8 @@ RSpec.describe Wralph::Adapters::Cis::CircleCi do
 
     it "returns 'unknown' when pipeline JSON is invalid" do
       pipeline_url = "https://circleci.com/api/v2/project/#{project_slug}/pipeline?branch=#{branch_name}"
-      stub_request(:get, pipeline_url).with(headers: { 'Circle-Token' => api_token })
-        .to_return(status: 200, body: 'not json')
+      stub_request(:get, pipeline_url).with(headers: {'Circle-Token' => api_token})
+                                      .to_return(status: 200, body: 'not json')
 
       result = described_class.build_status(pr_number, repo_owner, repo_name, api_token, verbose: false)
 
@@ -130,15 +130,15 @@ RSpec.describe Wralph::Adapters::Cis::CircleCi do
       pipeline_url = "https://circleci.com/api/v2/project/#{project_slug}/pipeline?branch=#{branch_name}"
       workflow_url = 'https://circleci.com/api/v2/pipeline/pipeline-1/workflow'
 
-      stub_request(:get, pipeline_url).with(headers: { 'Circle-Token' => api_token }).to_return(
+      stub_request(:get, pipeline_url).with(headers: {'Circle-Token' => api_token}).to_return(
         status: 200,
-        body: { items: [{ id: 'pipeline-1', state: 'errored' }] }.to_json,
-        headers: { 'Content-Type' => 'application/json' }
+        body: {items: [{id: 'pipeline-1', state: 'errored'}]}.to_json,
+        headers: {'Content-Type' => 'application/json'}
       )
-      stub_request(:get, workflow_url).with(headers: { 'Circle-Token' => api_token }).to_return(
+      stub_request(:get, workflow_url).with(headers: {'Circle-Token' => api_token}).to_return(
         status: 200,
-        body: { items: [{ status: 'success' }] }.to_json,
-        headers: { 'Content-Type' => 'application/json' }
+        body: {items: [{status: 'success'}]}.to_json,
+        headers: {'Content-Type' => 'application/json'}
       )
 
       result = described_class.wait_for_build(pr_number, repo_owner, repo_name, api_token)
@@ -150,15 +150,15 @@ RSpec.describe Wralph::Adapters::Cis::CircleCi do
       pipeline_url = "https://circleci.com/api/v2/project/#{project_slug}/pipeline?branch=#{branch_name}"
       workflow_url = 'https://circleci.com/api/v2/pipeline/pipeline-1/workflow'
 
-      stub_request(:get, pipeline_url).with(headers: { 'Circle-Token' => api_token }).to_return(
+      stub_request(:get, pipeline_url).with(headers: {'Circle-Token' => api_token}).to_return(
         status: 200,
-        body: { items: [{ id: 'pipeline-1', state: 'errored' }] }.to_json,
-        headers: { 'Content-Type' => 'application/json' }
+        body: {items: [{id: 'pipeline-1', state: 'errored'}]}.to_json,
+        headers: {'Content-Type' => 'application/json'}
       )
-      stub_request(:get, workflow_url).with(headers: { 'Circle-Token' => api_token }).to_return(
+      stub_request(:get, workflow_url).with(headers: {'Circle-Token' => api_token}).to_return(
         status: 200,
-        body: { items: [{ status: 'failed' }] }.to_json,
-        headers: { 'Content-Type' => 'application/json' }
+        body: {items: [{status: 'failed'}]}.to_json,
+        headers: {'Content-Type' => 'application/json'}
       )
 
       result = described_class.wait_for_build(pr_number, repo_owner, repo_name, api_token)
@@ -176,7 +176,7 @@ RSpec.describe Wralph::Adapters::Cis::CircleCi do
 
     it "returns 'Could not fetch pipeline' when pipeline request fails" do
       pipeline_url = "https://circleci.com/api/v2/project/#{project_slug}/pipeline?branch=#{branch_name}"
-      stub_request(:get, pipeline_url).with(headers: { 'Circle-Token' => api_token }).to_return(status: 500)
+      stub_request(:get, pipeline_url).with(headers: {'Circle-Token' => api_token}).to_return(status: 500)
 
       result = described_class.build_failures(pr_number, repo_owner, repo_name, api_token)
 
@@ -185,8 +185,8 @@ RSpec.describe Wralph::Adapters::Cis::CircleCi do
 
     it "returns 'No pipeline found' when pipeline has no items" do
       pipeline_url = "https://circleci.com/api/v2/project/#{project_slug}/pipeline?branch=#{branch_name}"
-      stub_request(:get, pipeline_url).with(headers: { 'Circle-Token' => api_token })
-        .to_return(status: 200, body: '{"items":[]}', headers: { 'Content-Type' => 'application/json' })
+      stub_request(:get, pipeline_url).with(headers: {'Circle-Token' => api_token})
+                                      .to_return(status: 200, body: '{"items":[]}', headers: {'Content-Type' => 'application/json'})
 
       result = described_class.build_failures(pr_number, repo_owner, repo_name, api_token)
 
@@ -197,13 +197,13 @@ RSpec.describe Wralph::Adapters::Cis::CircleCi do
       pipeline_url = "https://circleci.com/api/v2/project/#{project_slug}/pipeline?branch=#{branch_name}"
       workflow_url = 'https://circleci.com/api/v2/pipeline/pipeline-1/workflow'
 
-      stub_request(:get, pipeline_url).with(headers: { 'Circle-Token' => api_token }).to_return(
+      stub_request(:get, pipeline_url).with(headers: {'Circle-Token' => api_token}).to_return(
         status: 200,
-        body: { items: [{ id: 'pipeline-1' }] }.to_json,
-        headers: { 'Content-Type' => 'application/json' }
+        body: {items: [{id: 'pipeline-1'}]}.to_json,
+        headers: {'Content-Type' => 'application/json'}
       )
-      stub_request(:get, workflow_url).with(headers: { 'Circle-Token' => api_token })
-        .to_return(status: 200, body: '{"items":[]}', headers: { 'Content-Type' => 'application/json' })
+      stub_request(:get, workflow_url).with(headers: {'Circle-Token' => api_token})
+                                      .to_return(status: 200, body: '{"items":[]}', headers: {'Content-Type' => 'application/json'})
 
       result = described_class.build_failures(pr_number, repo_owner, repo_name, api_token)
 
@@ -215,20 +215,20 @@ RSpec.describe Wralph::Adapters::Cis::CircleCi do
       workflow_url = 'https://circleci.com/api/v2/pipeline/pipeline-1/workflow'
       jobs_url = 'https://circleci.com/api/v2/workflow/wf-1/job'
 
-      stub_request(:get, pipeline_url).with(headers: { 'Circle-Token' => api_token }).to_return(
+      stub_request(:get, pipeline_url).with(headers: {'Circle-Token' => api_token}).to_return(
         status: 200,
-        body: { items: [{ id: 'pipeline-1' }] }.to_json,
-        headers: { 'Content-Type' => 'application/json' }
+        body: {items: [{id: 'pipeline-1'}]}.to_json,
+        headers: {'Content-Type' => 'application/json'}
       )
-      stub_request(:get, workflow_url).with(headers: { 'Circle-Token' => api_token }).to_return(
+      stub_request(:get, workflow_url).with(headers: {'Circle-Token' => api_token}).to_return(
         status: 200,
-        body: { items: [{ id: 'wf-1' }] }.to_json,
-        headers: { 'Content-Type' => 'application/json' }
+        body: {items: [{id: 'wf-1'}]}.to_json,
+        headers: {'Content-Type' => 'application/json'}
       )
-      stub_request(:get, jobs_url).with(headers: { 'Circle-Token' => api_token }).to_return(
+      stub_request(:get, jobs_url).with(headers: {'Circle-Token' => api_token}).to_return(
         status: 200,
-        body: { items: [{ status: 'success', name: 'build', job_number: 1 }] }.to_json,
-        headers: { 'Content-Type' => 'application/json' }
+        body: {items: [{status: 'success', name: 'build', job_number: 1}]}.to_json,
+        headers: {'Content-Type' => 'application/json'}
       )
 
       result = described_class.build_failures(pr_number, repo_owner, repo_name, api_token)
@@ -242,25 +242,25 @@ RSpec.describe Wralph::Adapters::Cis::CircleCi do
       jobs_url = 'https://circleci.com/api/v2/workflow/wf-1/job'
       v1_url = "https://circleci.com/api/v1.1/project/github/#{repo_owner}/#{repo_name}/123"
 
-      stub_request(:get, pipeline_url).with(headers: { 'Circle-Token' => api_token }).to_return(
+      stub_request(:get, pipeline_url).with(headers: {'Circle-Token' => api_token}).to_return(
         status: 200,
-        body: { items: [{ id: 'pipeline-1' }] }.to_json,
-        headers: { 'Content-Type' => 'application/json' }
+        body: {items: [{id: 'pipeline-1'}]}.to_json,
+        headers: {'Content-Type' => 'application/json'}
       )
-      stub_request(:get, workflow_url).with(headers: { 'Circle-Token' => api_token }).to_return(
+      stub_request(:get, workflow_url).with(headers: {'Circle-Token' => api_token}).to_return(
         status: 200,
-        body: { items: [{ id: 'wf-1' }] }.to_json,
-        headers: { 'Content-Type' => 'application/json' }
+        body: {items: [{id: 'wf-1'}]}.to_json,
+        headers: {'Content-Type' => 'application/json'}
       )
-      stub_request(:get, jobs_url).with(headers: { 'Circle-Token' => api_token }).to_return(
+      stub_request(:get, jobs_url).with(headers: {'Circle-Token' => api_token}).to_return(
         status: 200,
-        body: { items: [{ status: 'failed', name: 'rspec', job_number: 123 }] }.to_json,
-        headers: { 'Content-Type' => 'application/json' }
+        body: {items: [{status: 'failed', name: 'rspec', job_number: 123}]}.to_json,
+        headers: {'Content-Type' => 'application/json'}
       )
-      stub_request(:get, v1_url).with(headers: { 'Circle-Token' => api_token }).to_return(
+      stub_request(:get, v1_url).with(headers: {'Circle-Token' => api_token}).to_return(
         status: 200,
-        body: { steps: [{ name: 'run-tests', actions: [{ failed: true, output_url: nil }] }] }.to_json,
-        headers: { 'Content-Type' => 'application/json' }
+        body: {steps: [{name: 'run-tests', actions: [{failed: true, output_url: nil}]}]}.to_json,
+        headers: {'Content-Type' => 'application/json'}
       )
 
       result = described_class.build_failures(pr_number, repo_owner, repo_name, api_token)
@@ -276,32 +276,32 @@ RSpec.describe Wralph::Adapters::Cis::CircleCi do
       v1_url = "https://circleci.com/api/v1.1/project/github/#{repo_owner}/#{repo_name}/456"
       output_url = 'https://output.circleci.com/some-log-id'
 
-      stub_request(:get, pipeline_url).with(headers: { 'Circle-Token' => api_token }).to_return(
+      stub_request(:get, pipeline_url).with(headers: {'Circle-Token' => api_token}).to_return(
         status: 200,
-        body: { items: [{ id: 'pipeline-1' }] }.to_json,
-        headers: { 'Content-Type' => 'application/json' }
+        body: {items: [{id: 'pipeline-1'}]}.to_json,
+        headers: {'Content-Type' => 'application/json'}
       )
-      stub_request(:get, workflow_url).with(headers: { 'Circle-Token' => api_token }).to_return(
+      stub_request(:get, workflow_url).with(headers: {'Circle-Token' => api_token}).to_return(
         status: 200,
-        body: { items: [{ id: 'wf-1' }] }.to_json,
-        headers: { 'Content-Type' => 'application/json' }
+        body: {items: [{id: 'wf-1'}]}.to_json,
+        headers: {'Content-Type' => 'application/json'}
       )
-      stub_request(:get, jobs_url).with(headers: { 'Circle-Token' => api_token }).to_return(
+      stub_request(:get, jobs_url).with(headers: {'Circle-Token' => api_token}).to_return(
         status: 200,
-        body: { items: [{ status: 'failed', name: 'build', job_number: 456 }] }.to_json,
-        headers: { 'Content-Type' => 'application/json' }
+        body: {items: [{status: 'failed', name: 'build', job_number: 456}]}.to_json,
+        headers: {'Content-Type' => 'application/json'}
       )
-      stub_request(:get, v1_url).with(headers: { 'Circle-Token' => api_token }).to_return(
+      stub_request(:get, v1_url).with(headers: {'Circle-Token' => api_token}).to_return(
         status: 200,
         body: {
-          steps: [{ name: 'run-build', actions: [{ failed: true, output_url: output_url }] }]
+          steps: [{name: 'run-build', actions: [{failed: true, output_url: output_url}]}]
         }.to_json,
-        headers: { 'Content-Type' => 'application/json' }
+        headers: {'Content-Type' => 'application/json'}
       )
       stub_request(:get, output_url).to_return(
         status: 200,
-        body: [{ 'message' => 'line 1' }, { 'message' => 'line 2' }, { 'message' => 'line 3' }].to_json,
-        headers: { 'Content-Type' => 'application/json' }
+        body: [{'message' => 'line 1'}, {'message' => 'line 2'}, {'message' => 'line 3'}].to_json,
+        headers: {'Content-Type' => 'application/json'}
       )
 
       result = described_class.build_failures(pr_number, repo_owner, repo_name, api_token)

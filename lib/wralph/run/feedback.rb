@@ -56,7 +56,6 @@ module Wralph
             end
           end
           # Remove the trailing empty line if present
-          changes = changes.chomp
         else
           # Fallback for older Ruby versions without reline
           changes = ""
@@ -64,6 +63,7 @@ module Wralph
           loop do
             line = $stdin.gets
             break if line.nil? || line.strip.empty?
+
             changes += line
             # Check if we've had two consecutive empty lines
             if changes.end_with?("\n\n")
@@ -71,8 +71,8 @@ module Wralph
               break
             end
           end
-          changes = changes.chomp
         end
+        changes = changes.chomp
 
         # Ask Claude to make the changes
         Interfaces::Print.info "Asking Claude to evaluate your comments to the Pull Request..."
@@ -103,8 +103,8 @@ module Wralph
           Interfaces::Print.success 'Fixes have been pushed. Waiting before checking build status again...'
           sleep 60 # Wait a bit for CircleCI to pick up the new commit
         else
-            Interfaces::Print.error 'Could not confirm that fixes were pushed. Please check manually.'
-            exit 1
+          Interfaces::Print.error 'Could not confirm that fixes were pushed. Please check manually.'
+          exit 1
         end
 
         IterateCI.run(issue_number)

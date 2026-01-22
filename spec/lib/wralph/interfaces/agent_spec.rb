@@ -87,7 +87,7 @@ RSpec.describe Wralph::Interfaces::Agent do
 
       described_class.run('instructions')
 
-      expect(Wralph::Interfaces::Shell).to have_received(:run_command) do |cmd, options|
+      expect(Wralph::Interfaces::Shell).to have_received(:run_command) do |_cmd, options|
         expect(options[:raise_on_error]).to be false
       end
     end

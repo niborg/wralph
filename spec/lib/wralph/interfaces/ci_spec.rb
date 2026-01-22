@@ -101,7 +101,9 @@ RSpec.describe Wralph::Interfaces::Ci do
             }
             File.write(config_file, config_data.to_yaml)
 
-            expect { described_class.build_status('123', 'owner', 'repo', 'token') }.to raise_error(/class_name is required/)
+            expect do
+              described_class.build_status('123', 'owner', 'repo', 'token')
+            end.to raise_error(/class_name is required/)
           end
         end
       end
@@ -124,7 +126,9 @@ RSpec.describe Wralph::Interfaces::Ci do
             }
             File.write(config_file, config_data.to_yaml)
 
-            expect { described_class.build_status('123', 'owner', 'repo', 'token') }.to raise_error(/Custom adapter file not found/)
+            expect do
+              described_class.build_status('123', 'owner', 'repo', 'token')
+            end.to raise_error(/Custom adapter file not found/)
           end
         end
       end
@@ -204,7 +208,8 @@ RSpec.describe Wralph::Interfaces::Ci do
 
           result = described_class.wait_for_build('123', 'owner', 'repo', 'token')
           expect(result).to be true
-          expect(Wralph::Adapters::Cis::CircleCi).to have_received(:wait_for_build).with('123', 'owner', 'repo', 'token')
+          expect(Wralph::Adapters::Cis::CircleCi).to have_received(:wait_for_build).with('123', 'owner', 'repo',
+                                                                                         'token')
         end
       end
     end

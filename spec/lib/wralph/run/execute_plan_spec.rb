@@ -139,7 +139,7 @@ RSpec.describe Wralph::Run::ExecutePlan do
             allow(Wralph::Interfaces::Shell).to receive(:get_worktrees).and_return([])
 
             # Mock switch_into_worktree to simulate being in the worktree
-            allow(Wralph::Interfaces::Shell).to receive(:switch_into_worktree) do |branch, _options|
+            allow(Wralph::Interfaces::Shell).to receive(:switch_into_worktree) do |_branch, _options|
               # Change to worktree path
               Dir.chdir(worktree_path)
             end
@@ -203,7 +203,7 @@ RSpec.describe Wralph::Run::ExecutePlan do
             allow(Wralph::Interfaces::Shell).to receive(:get_worktrees).and_return([])
 
             # Mock switch_into_worktree
-            allow(Wralph::Interfaces::Shell).to receive(:switch_into_worktree) do |branch, _options|
+            allow(Wralph::Interfaces::Shell).to receive(:switch_into_worktree) do |_branch, _options|
               Dir.chdir(worktree_path)
             end
 
@@ -255,7 +255,7 @@ RSpec.describe Wralph::Run::ExecutePlan do
 
           # Mock get_worktrees to return existing worktree
           allow(Wralph::Interfaces::Shell).to receive(:get_worktrees)
-            .and_return([{ 'branch' => branch_name, 'path' => tmpdir }])
+            .and_return([{'branch' => branch_name, 'path' => tmpdir}])
 
           # Mock switch_into_worktree (should be called but not copy secrets)
           allow(Wralph::Interfaces::Shell).to receive(:switch_into_worktree) do |branch, _options|

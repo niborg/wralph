@@ -60,21 +60,18 @@ def switch_into_worktree(branch_name, create_if_not_exists: true)
   if worktree
     success = system("wt switch #{worktree['branch']}")
     print_error "Failed to switch to branch #{branch_name}" unless success
+  elsif create_if_not_exists
+    success = system("wt switch --create #{branch_name}")
+    print_error "Failed to switch to branch #{branch_name}" unless success
+    worktree = get_worktrees.find { |wt| wt['branch'] == branch_name }
   else
-    if create_if_not_exists
-      success = system("wt switch --create #{branch_name}")
-      print_error "Failed to switch to branch #{branch_name}" unless success
-      worktree = get_worktrees.find { |wt| wt['branch'] == branch_name }
-    else
-      print_error "Worktree for branch #{branch_name} not found. Use --create to create it."
-      exit 1
-    end
+    print_error "Worktree for branch #{branch_name} not found. Use --create to create it."
+    exit 1
   end
 
   # Change the directory of the CURRENT Ruby process to the new worktree
   Dir.chdir(worktree['path'])
 end
-
 
 def error_unless_tools_installed
   required_tools = {
@@ -86,9 +83,7 @@ def error_unless_tools_installed
   }
 
   required_tools.each do |tool, install_info|
-    unless command_exists?(tool)
-      print_error "#{tool} CLI is not installed. Please install it from #{install_info}"
-    end
+    print_error "#{tool} CLI is not installed. Please install it from #{install_info}" unless command_exists?(tool)
   end
 end
 
@@ -242,13 +237,13 @@ def get_circleci_build_failures(pr_number, repo_owner, repo_name, api_token)
 
   # 3. Get the workflow ID
   workflow_url = "https://circleci.com/api/v2/pipeline/#{pipeline_id}/workflow"
-  stdout, _, success = run_command("curl -s -H 'Circle-Token: #{api_token}' '#{workflow_url}'")
+  stdout, = run_command("curl -s -H 'Circle-Token: #{api_token}' '#{workflow_url}'")
   workflow_id = JSON.parse(stdout)['items']&.first&.[]('id')
   return 'No workflow found' unless workflow_id
 
   # 4. Get jobs and filter for failures
   jobs_url = "https://circleci.com/api/v2/workflow/#{workflow_id}/job"
-  stdout, _, success = run_command("curl -s -H 'Circle-Token: #{api_token}' '#{jobs_url}'")
+  stdout, = run_command("curl -s -H 'Circle-Token: #{api_token}' '#{jobs_url}'")
   jobs_data = JSON.parse(stdout)
 
   failed_jobs = jobs_data['items']&.select { |j| %w[failed error].include?(j['status']) }
@@ -276,13 +271,13 @@ def get_circleci_build_failures(pr_number, repo_owner, repo_name, api_token)
 
         if output_url
           # The output_url provides a JSON array of log lines
-          raw_log_json, _, _ = run_command("curl -s '#{output_url}'")
+          raw_log_json, = run_command("curl -s '#{output_url}'")
           begin
             logs = JSON.parse(raw_log_json)
             # Join the last 30 lines of the log for context
             tail_logs = logs.map { |l| l['message'] }.last(30).join("\n")
             log_content += "\nFAILED STEP: #{failed_step['name']}\n\nLOG TAIL:\n#{tail_logs}"
-          rescue
+          rescue StandardError
             log_content += "\n(Could not parse raw log output)"
           end
         end
@@ -290,5 +285,5 @@ def get_circleci_build_failures(pr_number, repo_owner, repo_name, api_token)
     end
 
     log_content
-  end.join("\n\n" + "="*40 + "\n\n")
+  end.join("\n\n#{'=' * 40}\n\n")
 end

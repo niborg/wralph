@@ -22,8 +22,10 @@ module Wralph
         dir = Dir.pwd
         loop do
           return dir if File.directory?(File.join(dir, '.git'))
+
           parent = File.dirname(dir)
           break if parent == dir
+
           dir = parent
         end
         Dir.pwd # Fallback to current directory

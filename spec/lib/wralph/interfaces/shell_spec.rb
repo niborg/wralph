@@ -14,7 +14,7 @@ RSpec.describe Wralph::Interfaces::Shell do
     end
 
     it 'handles commands with arguments correctly' do
-      # Note: command_exists only checks if the base command exists
+      # NOTE: command_exists only checks if the base command exists
       expect(described_class.command_exists?('ls')).to be true
     end
   end
@@ -35,13 +35,13 @@ RSpec.describe Wralph::Interfaces::Shell do
     end
 
     it 'handles commands that write to stderr' do
-      stdout, stderr, success = described_class.run_command('echo "error" >&2 && exit 0')
+      _, stderr, success = described_class.run_command('echo "error" >&2 && exit 0')
       expect(success).to be true
       expect(stderr).to eq('error')
     end
 
     it 'returns false status for failed commands' do
-      stdout, stderr, success = described_class.run_command('false')
+      _, _, success = described_class.run_command('false')
       expect(success).to be false
     end
 
@@ -58,7 +58,7 @@ RSpec.describe Wralph::Interfaces::Shell do
     end
 
     it 'strips newlines from stdout and stderr' do
-      stdout, stderr, _success = described_class.run_command('echo "test"')
+      stdout, _, _success = described_class.run_command('echo "test"')
       expect(stdout).not_to end_with("\n")
     end
 

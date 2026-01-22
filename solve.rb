@@ -46,14 +46,10 @@ print_error "Issue ##{ISSUE_NUMBER} not found or not accessible" unless success
 # Check if branch already exists (locally or remotely)
 print_info "Checking if branch '#{BRANCH_NAME}' already exists..."
 _, _, success = run_command("git show-ref --verify --quiet refs/heads/#{BRANCH_NAME}")
-if success
-  print_error "Branch '#{BRANCH_NAME}' already exists locally. Please delete it with scripts/ai/delete_solution.rb."
-end
+print_error "Branch '#{BRANCH_NAME}' already exists locally. Please delete it with scripts/ai/delete_solution.rb." if success
 
 stdout, = run_command("git ls-remote --heads origin #{BRANCH_NAME}")
-if stdout.include?(BRANCH_NAME)
-  print_error "Branch '#{BRANCH_NAME}' already exists on remote. Please delete it with scripts/ai/delete_solution.rb."
-end
+print_error "Branch '#{BRANCH_NAME}' already exists on remote. Please delete it with scripts/ai/delete_solution.rb." if stdout.include?(BRANCH_NAME)
 
 print_success "Branch '#{BRANCH_NAME}' does not exist locally or remotely. Proceeding..."
 
@@ -87,7 +83,7 @@ claude_output = run_claude(instructions_template)
 puts "CLAUDE_OUTPUT: #{claude_output}"
 
 # Check if the plan file was created
-if !File.exist?(PLAN_FILE)
+unless File.exist?(PLAN_FILE)
   print_error "Plan file '#{PLAN_FILE}' was not created. Please check the Claude Code output manually."
   print_error "Output: #{claude_output}"
   exit 1
@@ -96,8 +92,5 @@ end
 print_success "Plan file '#{PLAN_FILE}' was created. Please review it, answering any questions Claude has asked."
 ask_user_to_continue('When you are ready to proceed, answer "y" to continue (y/N) ')
 
-
 success = system(File.join(__dir__, 'execute_plan.rb'), ISSUE_NUMBER)
-unless success
-  print_error "execute_plan.rb failed with exit code #{$?.exitstatus}"
-end
+print_error "execute_plan.rb failed with exit code #{$?.exitstatus}" unless success

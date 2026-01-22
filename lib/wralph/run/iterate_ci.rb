@@ -49,7 +49,6 @@ module Wralph
         # Get repository info
         repo_owner, = Interfaces::Shell.run_command('gh repo view --json owner -q .owner.login')
         repo_name, = Interfaces::Shell.run_command('gh repo view --json name -q .name')
-        repo_full_name = "#{repo_owner}/#{repo_name}"
 
         # Ensure tmp directory exists
         FileUtils.mkdir_p(Interfaces::Repo.tmp_dir)

@@ -70,7 +70,7 @@ module Wralph
         exit 1
       rescue SystemExit
         raise
-      rescue => e
+      rescue StandardError => e
         Interfaces::Print.error "Error checking initialization: #{e.message}"
         exit 1
       end

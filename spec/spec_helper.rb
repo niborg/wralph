@@ -23,8 +23,6 @@ RSpec.configure do |config|
   config.after(:suite) do
     repo_root = File.expand_path(File.join(__dir__, '..'))
     wralph_dir = File.join(repo_root, '.wralph')
-    if Dir.exist?(wralph_dir)
-      FileUtils.rm_rf(wralph_dir)
-    end
+    FileUtils.rm_rf(wralph_dir) if Dir.exist?(wralph_dir)
   end
 end
