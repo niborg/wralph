@@ -21,8 +21,10 @@ module Wralph
         # Get CircleCI build status for a PR
         def self.build_status(pr_number, repo_owner, repo_name, api_token, verbose: true)
           unless api_token
-            Interfaces::Print.error 'ci_api_token is not set in .wralph/secrets.yaml'
-            return nil
+            Interfaces::Print.error 'CircleCI requires ci_api_token in .wralph/secrets.yaml'
+            Interfaces::Print.error 'Please add your CircleCI API token to .wralph/secrets.yaml:'
+            Interfaces::Print.error '  ci_api_token: your-token-here'
+            exit 1
           end
 
           # Get the branch name from the PR
@@ -126,7 +128,12 @@ module Wralph
 
         # Get CircleCI build failures
         def self.build_failures(pr_number, repo_owner, repo_name, api_token)
-          return 'ci_api_token is not set in .wralph/secrets.yaml' unless api_token
+          unless api_token
+            Interfaces::Print.error 'CircleCI requires ci_api_token in .wralph/secrets.yaml'
+            Interfaces::Print.error 'Please add your CircleCI API token to .wralph/secrets.yaml:'
+            Interfaces::Print.error '  ci_api_token: your-token-here'
+            exit 1
+          end
 
           # 1. Get branch name from PR
           branch_name, = Interfaces::Shell.run_command("gh pr view #{pr_number} --json headRefName -q .headRefName")

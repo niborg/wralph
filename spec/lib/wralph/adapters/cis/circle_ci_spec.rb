@@ -17,12 +17,12 @@ RSpec.describe Wralph::Adapters::Cis::CircleCi do
   end
 
   describe '.build_status' do
-    it 'returns nil when api_token is missing' do
-      expect(Wralph::Interfaces::Print).to receive(:error).with('ci_api_token is not set in .wralph/secrets.yaml')
+    it 'exits when api_token is missing' do
+      expect(Wralph::Interfaces::Print).to receive(:error).with('CircleCI requires ci_api_token in .wralph/secrets.yaml')
+      expect(Wralph::Interfaces::Print).to receive(:error).with('Please add your CircleCI API token to .wralph/secrets.yaml:')
+      expect(Wralph::Interfaces::Print).to receive(:error).with('  ci_api_token: your-token-here')
 
-      result = described_class.build_status(pr_number, repo_owner, repo_name, nil)
-
-      expect(result).to be_nil
+      expect { described_class.build_status(pr_number, repo_owner, repo_name, nil) }.to raise_error(SystemExit)
       expect(Wralph::Interfaces::Shell).not_to have_received(:run_command).with(/circleci\.com/)
     end
 
@@ -168,10 +168,12 @@ RSpec.describe Wralph::Adapters::Cis::CircleCi do
   end
 
   describe '.build_failures' do
-    it "returns error when api_token is missing" do
-      result = described_class.build_failures(pr_number, repo_owner, repo_name, nil)
+    it "exits when api_token is missing" do
+      expect(Wralph::Interfaces::Print).to receive(:error).with('CircleCI requires ci_api_token in .wralph/secrets.yaml')
+      expect(Wralph::Interfaces::Print).to receive(:error).with('Please add your CircleCI API token to .wralph/secrets.yaml:')
+      expect(Wralph::Interfaces::Print).to receive(:error).with('  ci_api_token: your-token-here')
 
-      expect(result).to eq('ci_api_token is not set in .wralph/secrets.yaml')
+      expect { described_class.build_failures(pr_number, repo_owner, repo_name, nil) }.to raise_error(SystemExit)
     end
 
     it "returns 'Could not fetch pipeline' when pipeline request fails" do

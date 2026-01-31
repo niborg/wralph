@@ -35,15 +35,6 @@ module Wralph
         plan_file = Interfaces::Repo.plan_file(issue_number)
 
         api_token = Interfaces::Ci.api_token
-        if api_token.nil? || api_token.empty?
-          Interfaces::Print.error 'ci_api_token is not set in .wralph/secrets.yaml'
-          Interfaces::Print.error ''
-          Interfaces::Print.error 'Please add your CircleCI API token to .wralph/secrets.yaml:'
-          Interfaces::Print.error '  ci_api_token: your-token-here'
-          exit 1
-        else
-          Interfaces::Print.success 'Loaded CI API token from .wralph/secrets.yaml'
-        end
         retry_count = 0
 
         # Get repository info
