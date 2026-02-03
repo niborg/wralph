@@ -11,6 +11,8 @@ require_relative '../interfaces/repo'
 require_relative '../interfaces/print'
 require_relative '../interfaces/shell'
 require_relative '../interfaces/agent'
+require_relative '../utils'
+require_relative '../config'
 require_relative 'init'
 require_relative 'iterate_ci'
 
@@ -76,23 +78,17 @@ module Wralph
 
         # Ask the agent to make the changes
         Interfaces::Print.info "Asking the agent to evaluate your comments to the Pull Request..."
-        instructions = <<~INSTRUCTIONS
-          Background: You previously created a plan (found in the file #{plan_file}) and executed changes into a Pull Request
-          from the current branch (#{branch_name}) to the git origin. You can compare this branch against master
-          to see your proposed changes.
+        config = Config.load
+        prompt_template = config.prompts&.feedback
 
-          The user has reviewed your Pull Request and requested the following changes:
-
-          #{changes}
-
-          Do as follows:
-            1. Review your original plan that you documented in the plan file: `#{plan_file}`
-            2. Analyze the code changes that you've made in this branch by comparing it to the master branch
-            2. Review the user input
-            3. Make the necessary changes address the issues raised by the user
-            4. Commit and push the changes to the Pull Request branch
-            5. After pushing, output "FIXES_PUSHED" so I know you've completed the fixes
-        INSTRUCTIONS
+        instructions = Utils.prompt_sub(
+          prompt_template,
+          {
+            plan_file: plan_file,
+            branch_name: branch_name,
+            changes: changes
+          }
+        )
 
         # Run claude code with instructions
         claude_output = Interfaces::Agent.run(instructions)

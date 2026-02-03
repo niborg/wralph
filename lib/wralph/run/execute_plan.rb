@@ -5,6 +5,8 @@ require_relative '../interfaces/print'
 require_relative '../interfaces/shell'
 require_relative '../interfaces/agent'
 require_relative '../interfaces/objective_repository'
+require_relative '../utils'
+require_relative '../config'
 require_relative 'iterate_ci'
 
 module Wralph
@@ -71,22 +73,18 @@ module Wralph
         end
 
         # Build execution instructions based on whether plan exists
+        config = Config.load
+
         if plan_exists
-          execution_instructions = <<~EXECUTION_INSTRUCTIONS
-            You previously created a plan to solve issue ##{issue_number}. You can find the plan in the file: `#{plan_file}`. You have been placed in a git worktree for the branch `#{branch_name}`.
-
-            Do as follows:
-
-            1. Execute your plan:
-               - Make the necessary changes to solve the issue
-               - Commit your changes (including the plan) with a descriptive message that references the issue
-               - Push the branch to remote
-               - Create a pull request, referencing the issue in the body like "Fixes ##{issue_number}"
-
-            2. After creating the PR, output the PR number and its URL so I can track it.
-
-            Please proceed with these steps.
-          EXECUTION_INSTRUCTIONS
+          prompt_template = config.prompts&.execute_with_plan
+          execution_instructions = Utils.prompt_sub(
+            prompt_template,
+            {
+              issue_number: issue_number,
+              plan_file: plan_file,
+              branch_name: branch_name
+            }
+          )
           Interfaces::Print.info "Running agent harness to execute the plan #{plan_file}..."
         else
           # Fetch issue content
@@ -99,23 +97,15 @@ module Wralph
             exit 1
           end
 
-          execution_instructions = <<~EXECUTION_INSTRUCTIONS
-            I need you to solve the objective "#{issue_number}" in the file: `#{objective_file}`. You have been placed in a git worktree for the branch `#{branch_name}`.
-
-            Do as follows:
-
-            1. Solve the objective:
-               - Read and understand the objective's requirements
-               - Make the necessary code changes to solve the objective
-               - Write tests to verify the solution
-               - Commit your changes with a descriptive message that references the issue (e.g., "Fixes ##{issue_number}")
-               - Push the branch to remote
-               - Create a pull request, referencing the issue in the body like "Fixes ##{issue_number}"
-
-            2. After creating the PR, output the PR number and its URL so I can track it.
-
-            Please proceed with these steps.
-          EXECUTION_INSTRUCTIONS
+          prompt_template = config.prompts&.execute_without_plan
+          execution_instructions = Utils.prompt_sub(
+            prompt_template,
+            {
+              issue_number: issue_number,
+              objective_file: objective_file,
+              branch_name: branch_name
+            }
+          )
           Interfaces::Print.info "Running agent harness to solve objective ##{issue_number}..."
         end
 

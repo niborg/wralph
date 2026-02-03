@@ -27,3 +27,96 @@ agent_harness:
   # the class must be in the .wralph directory and track the class name in
   # snake_case, e.g.: my_custom_agent_adapter.rb
   source: claude_code
+
+# Prompt templates for the agent harness
+# You can customize any of the prompts below. Each accepts template variables
+# like #{issue_number}, #{plan_file}, #{branch_name}, etc.
+prompts:
+  # Prompt used when creating a plan for an issue
+  # Variables: #{issue_number}, #{objective_file}, #{plan_file}
+  plan: |
+    I need you to make a plan to solve the objective "#{issue_number}" in the file: `#{objective_file}`. You are not to make any code changes. Instead, here's what I need you to do:
+
+    1. First, read the objective from the file
+
+    2. Create a detailed plan for solving the issue. Write your thinking and plan in a markdown file at:
+       `#{plan_file}`
+
+    The plan should include:
+    - Analysis of the issue.
+    - Approach to solving it.
+    - Test cases that should be written to verify the solution.
+    - Steps you'll take.
+    - Any potential risks or considerations.
+    - A list of questions for any clarifications you need to ask the user. If you do not need any clarifications, you can say "No questions needed".
+
+  # Prompt used when executing a plan that exists
+  # Variables: #{issue_number}, #{plan_file}, #{branch_name}
+  execute_with_plan: |
+    You previously created a plan to solve issue ##{issue_number}. You can find the plan in the file: `#{plan_file}`. You have been placed in a git worktree for the branch `#{branch_name}`.
+
+    Do as follows:
+
+    1. Execute your plan:
+       - Make the necessary changes to solve the issue
+       - Commit your changes (including the plan) with a descriptive message that references the issue
+       - Push the branch to remote
+       - Create a pull request, referencing the issue in the body like "Fixes ##{issue_number}"
+
+    2. After creating the PR, output the PR number and its URL so I can track it.
+
+    Please proceed with these steps.
+
+  # Prompt used when executing without a pre-existing plan
+  # Variables: #{issue_number}, #{objective_file}, #{branch_name}
+  execute_without_plan: |
+    I need you to solve the objective "#{issue_number}" in the file: `#{objective_file}`. You have been placed in a git worktree for the branch `#{branch_name}`.
+
+    Do as follows:
+
+    1. Solve the objective:
+       - Read and understand the objective's requirements
+       - Make the necessary code changes to solve the objective
+       - Write tests to verify the solution
+       - Commit your changes with a descriptive message that references the issue (e.g., "Fixes ##{issue_number}")
+       - Push the branch to remote
+       - Create a pull request, referencing the issue in the body like "Fixes ##{issue_number}"
+
+    2. After creating the PR, output the PR number and its URL so I can track it.
+
+    Please proceed with these steps.
+
+  # Prompt used when processing user feedback on a PR
+  # Variables: #{plan_file}, #{branch_name}, #{changes}
+  feedback: |
+    Background: You previously created a plan (found in the file #{plan_file}) and executed changes into a Pull Request
+    from the current branch (#{branch_name}) to the git origin. You can compare this branch against master
+    to see your proposed changes.
+
+    The user has reviewed your Pull Request and requested the following changes:
+
+    #{changes}
+
+    Do as follows:
+      1. Review your original plan that you documented in the plan file: `#{plan_file}`
+      2. Analyze the code changes that you've made in this branch by comparing it to the master branch
+      2. Review the user input
+      3. Make the necessary changes address the issues raised by the user
+      4. Commit and push the changes to the Pull Request branch
+      5. After pushing, output "FIXES_PUSHED" so I know you've completed the fixes
+
+  # Prompt used when fixing CI failures
+  # Variables: #{pr_number}, #{filename}, #{plan_file}, #{issue_number}
+  ci: |
+    The CircleCI build for PR ##{pr_number} has failed. The failure details have been logged into the following file:
+
+    #{filename}
+
+    Do as follows:
+    1. Review your original plan that you documented in the plan file: `#{plan_file}`
+    2. Analyze the failures above
+    3. Make the necessary changes to fix the issues
+    4. Commit and push the changes to the PR branch
+    5. After pushing, output "FIXES_PUSHED" so I know you've completed the fixes
+
+    The PR branch is: `issue-#{issue_number}`

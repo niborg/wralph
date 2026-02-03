@@ -6,6 +6,8 @@ require_relative '../interfaces/print'
 require_relative '../interfaces/shell'
 require_relative '../interfaces/agent'
 require_relative '../interfaces/ci'
+require_relative '../utils'
+require_relative '../config'
 
 module Wralph
   module Run
@@ -74,20 +76,18 @@ module Wralph
           # Fix the issues
           Interfaces::Print.info "Attempting to fix the issues (attempt #{retry_count}/#{MAX_RETRIES})..."
 
-          fix_instructions = <<~FIX_INSTRUCTIONS
-            The CircleCI build for PR ##{pr_number} has failed. The failure details have been logged into the following file:
+          config = Config.load
+          prompt_template = config.prompts&.ci
 
-            #{filename}
-
-            Do as follows:
-            1. Review your original plan that you documented in the plan file: `#{plan_file}`
-            2. Analyze the failures above
-            3. Make the necessary changes to fix the issues
-            4. Commit and push the changes to the PR branch
-            5. After pushing, output "FIXES_PUSHED" so I know you've completed the fixes
-
-            The PR branch is: `issue-#{issue_number}`
-          FIX_INSTRUCTIONS
+          fix_instructions = Utils.prompt_sub(
+            prompt_template,
+            {
+              pr_number: pr_number,
+              filename: filename,
+              plan_file: plan_file,
+              issue_number: issue_number
+            }
+          )
 
           # Pass fix instructions to claude code
           fix_output = Interfaces::Agent.run(fix_instructions)
