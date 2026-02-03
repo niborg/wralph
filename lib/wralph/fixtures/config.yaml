@@ -16,3 +16,14 @@ ci:
   # the class must be in the .wralph directory and track the class name in
   # snake_case, e.g.: my_custom_ci_adapter.rb
   source: circle_ci
+
+# Agent harness (AI coding assistant) configuration
+agent_harness:
+  # Supported sources: claude_code, opencode, custom
+  # - claude_code: Anthropic's Claude Code CLI (requires `claude` to be installed)
+  # - opencode: OpenCode CLI (requires `opencode` to be installed)
+  # You can specify a "custom" source, just provide a class that implements
+  # the Agent interface and specify the class_name below. The file containing
+  # the class must be in the .wralph directory and track the class name in
+  # snake_case, e.g.: my_custom_agent_adapter.rb
+  source: claude_code
