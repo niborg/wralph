@@ -73,14 +73,14 @@ module Wralph
         # Build execution instructions based on whether plan exists
         if plan_exists
           execution_instructions = <<~EXECUTION_INSTRUCTIONS
-            You previously created a plan to solve GitHub issue ##{issue_number}. You can find the plan in the file: `#{plan_file}`. You have been placed in a git worktree for the branch `#{branch_name}`.
+            You previously created a plan to solve issue ##{issue_number}. You can find the plan in the file: `#{plan_file}`. You have been placed in a git worktree for the branch `#{branch_name}`.
 
             Do as follows:
 
             1. Execute your plan:
                - Make the necessary changes to solve the issue
                - Commit your changes (including the plan) with a descriptive message that references the issue
-               - Push the branch to GitHub
+               - Push the branch to remote
                - Create a pull request, referencing the issue in the body like "Fixes ##{issue_number}"
 
             2. After creating the PR, output the PR number and its URL so I can track it.
@@ -89,8 +89,8 @@ module Wralph
           EXECUTION_INSTRUCTIONS
           Interfaces::Print.info "Running Claude Code to execute the plan #{plan_file}..."
         else
-          # Fetch GitHub issue content
-          Interfaces::Print.info "No plan found. Fetching GitHub issue ##{issue_number}..."
+          # Fetch issue content
+          Interfaces::Print.info "No plan found. Fetching issue ##{issue_number}..."
           begin
             objective_file = Interfaces::ObjectiveRepository.download!(issue_number)
             File.read(objective_file)
@@ -109,14 +109,14 @@ module Wralph
                - Make the necessary code changes to solve the objective
                - Write tests to verify the solution
                - Commit your changes with a descriptive message that references the issue (e.g., "Fixes ##{issue_number}")
-               - Push the branch to GitHub
+               - Push the branch to remote
                - Create a pull request, referencing the issue in the body like "Fixes ##{issue_number}"
 
             2. After creating the PR, output the PR number and its URL so I can track it.
 
             Please proceed with these steps.
           EXECUTION_INSTRUCTIONS
-          Interfaces::Print.info "Running Claude Code to solve GitHub issue ##{issue_number}..."
+          Interfaces::Print.info "Running Claude Code to solve objective ##{issue_number}..."
         end
 
         # Run claude code with instructions
@@ -127,16 +127,16 @@ module Wralph
         # Try multiple patterns in order of specificity to avoid false matches
 
         # Pattern 1: Look for PR in URL format (most reliable and unambiguous)
-        # Matches: https://github.com/owner/repo/pull/774
+        # Matches: .../owner/repo/pull/774 (any host, e.g. github.com or GHE)
         Interfaces::Print.info 'Extracting PR number from output by looking for the PR URL pattern...'
-        pr_number = claude_output.match(%r{github\.com/[^/\s]+/[^/\s]+/pull/(\d+)}i)&.[](1)
+        pr_number = claude_output.match(%r{/[^/\s]+/[^/\s]+/pull/(\d+)}i)&.[](1)
 
         # Pattern 2: Look for "PR Number:" followed by optional markdown formatting and the number
-        # This handles formats like "PR Number: **#774**" or "PR Number: #774"
+        # Handles "PR Number: #774", "**PR Number**: #19901", "PR Number: **#774**"
         if pr_number.nil?
-          # Match "PR Number:" followed by optional whitespace, optional markdown bold, optional #, then digits
+          # Allow optional ** around "Number" (e.g. "- **PR Number**: #19901") and after colon
           Interfaces::Print.warning 'Extracting PR number from output by looking for the PR Number pattern...'
-          pr_number = claude_output.match(/PR\s+Number\s*:\s*(?:\*\*)?#?(\d+)/i)&.[](1)
+          pr_number = claude_output.match(/PR\s+Number\s*(?:\*\*)?\s*:\s*(?:\*\*)?#?(\d+)/i)&.[](1)
         end
 
         # Pattern 3: Look for "PR #" or "Pull Request #" at start of line or after heading markers

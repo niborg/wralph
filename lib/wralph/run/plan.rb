@@ -21,10 +21,10 @@ module Wralph
         # Ensure plans directory exists
         FileUtils.mkdir_p(Interfaces::Repo.plans_dir)
 
-        # Check if GitHub CLI is authenticated
+        # Check if gh CLI is authenticated
         _, _, success = Interfaces::Shell.run_command('gh auth status')
         unless success
-          Interfaces::Print.error 'GitHub CLI is not authenticated. Please run \'gh auth login\''
+          Interfaces::Print.error 'gh CLI is not authenticated. Please run \'gh auth login\''
           exit 1
         end
 
@@ -36,7 +36,7 @@ module Wralph
         end
 
         # Fetch issue details to verify it exists and download it
-        Interfaces::Print.info "Fetching GitHub issue ##{issue_number}..."
+        Interfaces::Print.info "Fetching issue ##{issue_number}..."
         begin
           Interfaces::ObjectiveRepository.download!(issue_number)
         rescue StandardError => e
@@ -61,7 +61,7 @@ module Wralph
         Interfaces::Print.success "Branch '#{branch_name}' does not exist locally or remotely. Proceeding..."
 
         # Main workflow
-        Interfaces::Print.info "Starting workflow to solve GitHub issue ##{issue_number}"
+        Interfaces::Print.info "Starting workflow to solve issue ##{issue_number}"
 
         # Step 1: Create initial plan and execute
         Interfaces::Print.info 'Step 1: Creating plan and executing solution...'

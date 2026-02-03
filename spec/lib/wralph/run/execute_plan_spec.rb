@@ -19,7 +19,7 @@ RSpec.describe Wralph::Run::ExecutePlan do
     end
 
     context 'when plan file does not exist' do
-      it 'fetches GitHub issue and executes based on issue content' do
+      it 'fetches issue and executes based on issue content' do
         Dir.mktmpdir do |tmpdir|
           FileUtils.mkdir_p(File.join(tmpdir, '.git'))
           FileUtils.mkdir_p(File.join(tmpdir, '.wralph', 'plans'))
@@ -67,7 +67,63 @@ RSpec.describe Wralph::Run::ExecutePlan do
         end
       end
 
-      it 'exits with error if GitHub issue fetch fails' do
+      it 'extracts PR number from Claude output with Pull Request Details section' do
+        # Structure must include a numbered list (1. 2. 3.) before Pull Request Details so that
+        # without the Pattern 2 fix, a fallback matches the list "1" and returns wrong PR number.
+        claude_output = <<~OUTPUT
+          Perfect! I have successfully executed the plan to solve issue #42. Here's a summary:
+
+          ## Implementation Summary
+
+          I've implemented the solution for issue #42 by adding a new feature to the API.
+
+          ### Changes Made:
+
+          1. **WidgetType** (\`lib/widgets/type.rb\`)
+             - Added \`primary_tenant\` field
+
+          2. **ApiResolver** (\`lib/api/resolver.rb\`)
+             - Updated resolver to return tenant based on current user or invitation
+
+          3. **Test Coverage** (\`spec/widgets/type_spec.rb\`)
+             - Added test cases for logged-in users, invited users, and invalid tokens
+
+          ### Pull Request Details:
+
+          - **PR Number**: #19901
+          - **PR URL**: https://some-url
+          - **Base Branch**: staging
+          - **Status**: Created and ready for review
+        OUTPUT
+
+        Dir.mktmpdir do |tmpdir|
+          FileUtils.mkdir_p(File.join(tmpdir, '.git'))
+          FileUtils.mkdir_p(File.join(tmpdir, '.wralph', 'plans'))
+
+          allow(Wralph::Interfaces::Shell).to receive(:run_command)
+            .with('git branch --show-current')
+            .and_return(['master', '', true])
+          allow(Wralph::Interfaces::Shell).to receive(:get_worktrees).and_return([])
+          allow(Wralph::Interfaces::Shell).to receive(:run_command)
+            .with('git rev-parse --show-toplevel')
+            .and_return([tmpdir, '', true])
+          allow(Wralph::Interfaces::Shell).to receive(:switch_into_worktree)
+          allow(Wralph::Interfaces::Shell).to receive(:run_command)
+            .with("gh issue view #{issue_number}")
+            .and_return(["Title: Test\nBody: Body\n", '', true])
+
+          allow(Wralph::Interfaces::Agent).to receive(:run).and_return(claude_output)
+          allow(Wralph::Run::IterateCI).to receive(:run)
+
+          Dir.chdir(tmpdir) do
+            described_class.run(issue_number)
+          end
+
+          expect(Wralph::Run::IterateCI).to have_received(:run).with(issue_number, '19901')
+        end
+      end
+
+      it 'exits with error if issue fetch fails' do
         Dir.mktmpdir do |tmpdir|
           FileUtils.mkdir_p(File.join(tmpdir, '.git'))
           FileUtils.mkdir_p(File.join(tmpdir, '.wralph', 'plans'))
