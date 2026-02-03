@@ -26,6 +26,14 @@ module Wralph
       end
 
       def self.switch_into_worktree(branch_name, create_if_not_exists: true)
+        # Check if already in the target worktree
+        stdout, = run_command('git branch --show-current')
+        current_branch = stdout.strip
+        if current_branch == branch_name
+          Print.info "Already in worktree for branch #{branch_name}"
+          return
+        end
+
         # Check if any entry matches the branch name
         worktree = get_worktrees.find { |wt| wt['branch'] == branch_name }
         if worktree

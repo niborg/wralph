@@ -151,9 +151,7 @@ module Wralph
         if pr_number.nil?
           # Try to find PR by branch name
           Interfaces::Print.warning 'PR number not found in output, searching by branch name...'
-          stdout, = Interfaces::Shell.run_command("gh pr list --head #{branch_name} --json number -q '.[0].number'")
-          pr_number = stdout.strip
-          pr_number = nil if pr_number.empty? || pr_number == 'null'
+          pr_number = Interfaces::Repo.get_pr_from_branch_name(branch_name)
         end
 
         if pr_number.nil?

@@ -87,7 +87,7 @@ prompts:
     Please proceed with these steps.
 
   # Prompt used when processing user feedback on a PR
-  # Variables: #{plan_file}, #{branch_name}, #{changes}
+  # Variables: #{plan_file}, #{branch_name}, #{changes}, #{issue_number}
   feedback: |
     Background: You previously created a plan (found in the file #{plan_file}) and executed changes into a Pull Request
     from the current branch (#{branch_name}) to the git origin. You can compare this branch against master

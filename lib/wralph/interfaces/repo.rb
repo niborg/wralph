@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require_relative 'shell'
+
 module Wralph
   module Interfaces
     module Repo
@@ -69,6 +71,12 @@ module Wralph
 
       def self.fixture_file(filename)
         File.join(fixtures_dir, filename)
+      end
+
+      def self.get_pr_from_branch_name(branch_name)
+        stdout, = Shell.run_command("gh pr list --head #{branch_name} --json number -q '.[0].number'")
+        pr_number = stdout.strip
+        pr_number.empty? || pr_number == 'null' ? nil : pr_number
       end
     end
   end

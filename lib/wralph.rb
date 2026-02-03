@@ -12,6 +12,7 @@ require_relative 'wralph/run/init'
 require_relative 'wralph/run/plan'
 require_relative 'wralph/run/execute_plan'
 require_relative 'wralph/run/iterate_ci'
+require_relative 'wralph/run/act_on_ci_results'
 require_relative 'wralph/run/feedback'
 require_relative 'wralph/run/remove'
 
