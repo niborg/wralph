@@ -9,7 +9,7 @@ module Wralph
       module Opencode
         def self.run(instructions)
           opencode_output, = Interfaces::Shell.run_command(
-            "opencode run --command #{Shellwords.shellescape(instructions)}", raise_on_error: false
+            "opencode run #{Shellwords.shellescape(instructions)}", raise_on_error: false
           )
           opencode_output
         end
