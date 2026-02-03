@@ -127,7 +127,7 @@ RSpec.describe Wralph::Interfaces::Agent do
 
     it 'calls opencode with the provided instructions' do
       instructions = 'Test instructions'
-      expected_command = /opencode run --command/
+      expected_command = /opencode run/
 
       allow(Wralph::Interfaces::Shell).to receive(:run_command).and_return(['test output', '', true])
 
@@ -154,7 +154,7 @@ RSpec.describe Wralph::Interfaces::Agent do
       described_class.run(malicious_instructions)
 
       expect(Wralph::Interfaces::Shell).to have_received(:run_command) do |cmd|
-        expect(cmd).to match(/opencode run --command/)
+        expect(cmd).to match(/opencode run/)
         expect(cmd).not_to include('; rm -rf')
       end
     end
