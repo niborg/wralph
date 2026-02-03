@@ -74,8 +74,8 @@ module Wralph
         end
         changes = changes.chomp
 
-        # Ask Claude to make the changes
-        Interfaces::Print.info "Asking Claude to evaluate your comments to the Pull Request..."
+        # Ask the agent to make the changes
+        Interfaces::Print.info "Asking the agent to evaluate your comments to the Pull Request..."
         instructions = <<~INSTRUCTIONS
           Background: You previously created a plan (found in the file #{plan_file}) and executed changes into a Pull Request
           from the current branch (#{branch_name}) to the git origin. You can compare this branch against master

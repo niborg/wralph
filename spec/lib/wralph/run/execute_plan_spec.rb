@@ -67,10 +67,10 @@ RSpec.describe Wralph::Run::ExecutePlan do
         end
       end
 
-      it 'extracts PR number from Claude output with Pull Request Details section' do
+      it 'extracts PR number from agent output with Pull Request Details section' do
         # Structure must include a numbered list (1. 2. 3.) before Pull Request Details so that
         # without the Pattern 2 fix, a fallback matches the list "1" and returns wrong PR number.
-        claude_output = <<~OUTPUT
+        agent_output = <<~OUTPUT
           Perfect! I have successfully executed the plan to solve issue #42. Here's a summary:
 
           ## Implementation Summary
@@ -112,7 +112,7 @@ RSpec.describe Wralph::Run::ExecutePlan do
             .with("gh issue view #{issue_number}")
             .and_return(["Title: Test\nBody: Body\n", '', true])
 
-          allow(Wralph::Interfaces::Agent).to receive(:run).and_return(claude_output)
+          allow(Wralph::Interfaces::Agent).to receive(:run).and_return(agent_output)
           allow(Wralph::Run::IterateCI).to receive(:run)
 
           Dir.chdir(tmpdir) do

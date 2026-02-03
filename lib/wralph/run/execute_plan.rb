@@ -87,7 +87,7 @@ module Wralph
 
             Please proceed with these steps.
           EXECUTION_INSTRUCTIONS
-          Interfaces::Print.info "Running Claude Code to execute the plan #{plan_file}..."
+          Interfaces::Print.info "Running agent harness to execute the plan #{plan_file}..."
         else
           # Fetch issue content
           Interfaces::Print.info "No plan found. Fetching issue ##{issue_number}..."
@@ -116,12 +116,12 @@ module Wralph
 
             Please proceed with these steps.
           EXECUTION_INSTRUCTIONS
-          Interfaces::Print.info "Running Claude Code to solve objective ##{issue_number}..."
+          Interfaces::Print.info "Running agent harness to solve objective ##{issue_number}..."
         end
 
-        # Run claude code with instructions
-        claude_output = Interfaces::Agent.run(execution_instructions)
-        puts "CLAUDE_OUTPUT: #{claude_output}"
+        # Run agent harness with instructions
+        agent_output = Interfaces::Agent.run(execution_instructions)
+        puts "AGENT_OUTPUT: #{agent_output}"
 
         # Extract PR number from output (look for patterns like "PR #123", "**PR #123**", or "Pull Request #123")
         # Try multiple patterns in order of specificity to avoid false matches
@@ -129,33 +129,33 @@ module Wralph
         # Pattern 1: Look for PR in URL format (most reliable and unambiguous)
         # Matches: .../owner/repo/pull/774 (any host, e.g. github.com or GHE)
         Interfaces::Print.info 'Extracting PR number from output by looking for the PR URL pattern...'
-        pr_number = claude_output.match(%r{/[^/\s]+/[^/\s]+/pull/(\d+)}i)&.[](1)
+        pr_number = agent_output.match(%r{/[^/\s]+/[^/\s]+/pull/(\d+)}i)&.[](1)
 
         # Pattern 2: Look for "PR Number:" followed by optional markdown formatting and the number
         # Handles "PR Number: #774", "**PR Number**: #19901", "PR Number: **#774**"
         if pr_number.nil?
           # Allow optional ** around "Number" (e.g. "- **PR Number**: #19901") and after colon
           Interfaces::Print.warning 'Extracting PR number from output by looking for the PR Number pattern...'
-          pr_number = claude_output.match(/PR\s+Number\s*(?:\*\*)?\s*:\s*(?:\*\*)?#?(\d+)/i)&.[](1)
+          pr_number = agent_output.match(/PR\s+Number\s*(?:\*\*)?\s*:\s*(?:\*\*)?#?(\d+)/i)&.[](1)
         end
 
         # Pattern 3: Look for "PR #" or "Pull Request #" at start of line or after heading markers
         if pr_number.nil?
           Interfaces::Print.warning 'Extracting PR number from output by looking for the PR # pattern...'
-          pr_number = claude_output.match(/(?:^|\n|###\s+)[^\n]*(?:PR|Pull Request)[:\s]+(?:\*\*)?#?(\d+)/i)&.[](1)
+          pr_number = agent_output.match(/(?:^|\n|###\s+)[^\n]*(?:PR|Pull Request)[:\s]+(?:\*\*)?#?(\d+)/i)&.[](1)
         end
 
         # Pattern 4: Fallback to simple pattern but exclude "Found PR" patterns
         if pr_number.nil?
           # Match PR but not if preceded by "Found" or similar words
           Interfaces::Print.warning 'Extracting PR number from output by looking for the PR pattern...'
-          pr_number = claude_output.match(/(?<!Found\s)(?:PR|Pull Request)[:\s]+(?:\*\*)?#?(\d+)/i)&.[](1)
+          pr_number = agent_output.match(/(?<!Found\s)(?:PR|Pull Request)[:\s]+(?:\*\*)?#?(\d+)/i)&.[](1)
         end
 
         # Pattern 5: Last resort - any PR pattern (but this might match false positives)
         if pr_number.nil?
           Interfaces::Print.warning 'Extracting PR number from output by looking for the any PR pattern...'
-          pr_number = claude_output.match(/(?:PR|Pull Request|pull request)[^0-9]*#?(\d+)/i)&.[](1)
+          pr_number = agent_output.match(/(?:PR|Pull Request|pull request)[^0-9]*#?(\d+)/i)&.[](1)
         end
 
         if pr_number.nil?
@@ -167,8 +167,8 @@ module Wralph
         end
 
         if pr_number.nil?
-          Interfaces::Print.error 'Could not determine PR number. Please check the Claude Code output manually.'
-          Interfaces::Print.error "Output: #{claude_output}"
+          Interfaces::Print.error 'Could not determine PR number. Please check the agent output manually.'
+          Interfaces::Print.error "Output: #{agent_output}"
           exit 1
         end
 
