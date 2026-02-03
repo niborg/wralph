@@ -67,6 +67,9 @@ module Wralph
           },
           'ci' => {
             'source' => 'circle_ci'
+          },
+          'agent_harness' => {
+            'source' => 'claude_code'
           }
         }
       end
