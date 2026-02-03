@@ -6,6 +6,8 @@ require_relative '../interfaces/print'
 require_relative '../interfaces/shell'
 require_relative '../interfaces/agent'
 require_relative '../interfaces/objective_repository'
+require_relative '../utils'
+require_relative '../config'
 require_relative 'init'
 require_relative 'execute_plan'
 
@@ -67,22 +69,17 @@ module Wralph
         Interfaces::Print.info 'Step 1: Creating plan and executing solution...'
 
         objective_file = Interfaces::ObjectiveRepository.local_file_path(issue_number)
-        instructions_template = <<~INSTRUCTIONS
-          I need you to make a plan to solve the objective "#{issue_number}" in the file: `#{objective_file}`. You are not to make any code changes. Instead, here's what I need you to do:
+        config = Config.load
+        prompt_template = config.prompts&.plan
 
-          1. First, read the objective from the file
-
-          2. Create a detailed plan for solving the issue. Write your thinking and plan in a markdown file at:
-             `#{plan_file}`
-
-           The plan should include:
-           - Analysis of the issue.
-           - Approach to solving it.
-           - Test cases that should be written to verify the solution.
-           - Steps you'll take.
-           - Any potential risks or considerations.
-           - A list of questions for any clarifications you need to ask the user. If you do not need any clarifications, you can say "No questions needed".
-        INSTRUCTIONS
+        instructions_template = Utils.prompt_sub(
+          prompt_template,
+          {
+            issue_number: issue_number,
+            objective_file: objective_file,
+            plan_file: plan_file
+          }
+        )
 
         # Run agent harness with instructions
         Interfaces::Print.info "Running agent harness to create a plan to solve issue ##{issue_number}..."

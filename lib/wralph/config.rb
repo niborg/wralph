@@ -70,8 +70,18 @@ module Wralph
           },
           'agent_harness' => {
             'source' => 'claude_code'
-          }
+          },
+          'prompts' => load_default_prompts
         }
+      end
+
+      def load_default_prompts
+        fixtures_path = File.expand_path('fixtures/config.yaml', __dir__)
+        yaml_data = YAML.load_file(fixtures_path)
+        prompts = yaml_data['prompts']
+        raise "Default prompts not found in #{fixtures_path}" if prompts.nil? || prompts.empty?
+
+        prompts
       end
 
       def default_config
