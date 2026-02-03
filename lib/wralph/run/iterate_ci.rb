@@ -16,11 +16,7 @@ module Wralph
 
       def self.run(issue_number, pr_number = nil)
         branch_name = "issue-#{issue_number}".freeze
-        pr_number ||= begin
-          stdout, = Interfaces::Shell.run_command("gh pr list --head #{branch_name} --json number -q '.[0].number'")
-          pr_num = stdout.strip
-          pr_num.empty? || pr_num == 'null' ? nil : pr_num
-        end
+        pr_number ||= Interfaces::Repo.get_pr_from_branch_name(branch_name)
 
         stdout, = Interfaces::Shell.run_command('git branch --show-current')
         current_branch = stdout.strip
