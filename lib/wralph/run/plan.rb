@@ -84,19 +84,19 @@ module Wralph
            - A list of questions for any clarifications you need to ask the user. If you do not need any clarifications, you can say "No questions needed".
         INSTRUCTIONS
 
-        # Run claude code with instructions
-        Interfaces::Print.info "Running Claude Code to create a plan to solve issue ##{issue_number}..."
-        claude_output = Interfaces::Agent.run(instructions_template)
-        puts "CLAUDE_OUTPUT: #{claude_output}"
+        # Run agent harness with instructions
+        Interfaces::Print.info "Running agent harness to create a plan to solve issue ##{issue_number}..."
+        agent_output = Interfaces::Agent.run(instructions_template)
+        puts "AGENT_OUTPUT: #{agent_output}"
 
         # Check if the plan file was created
         unless File.exist?(plan_file)
-          Interfaces::Print.error "Plan file '#{plan_file}' was not created. Please check the Claude Code output manually."
-          Interfaces::Print.error "Output: #{claude_output}"
+          Interfaces::Print.error "Plan file '#{plan_file}' was not created. Please check the agent output manually."
+          Interfaces::Print.error "Output: #{agent_output}"
           exit 1
         end
 
-        Interfaces::Print.success "Plan file '#{plan_file}' was created. Please review it, answering any questions Claude has asked."
+        Interfaces::Print.success "Plan file '#{plan_file}' was created. Please review it, answering any questions the agent has asked."
         Interfaces::Shell.ask_user_to_continue('When you are ready to proceed, answer "y" to continue (y/N) ')
 
         # Execute the plan
