@@ -18,7 +18,7 @@ module Wralph
         Init.ensure_initialized!
 
         plan_file = Interfaces::Repo.plan_file(issue_number)
-        branch_name = "issue-#{issue_number}".freeze
+        branch_name = Interfaces::Repo.branch_name(issue_number)
 
         # Ensure plans directory exists
         FileUtils.mkdir_p(Interfaces::Repo.plans_dir)

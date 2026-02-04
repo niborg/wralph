@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 require_relative 'shell'
+require_relative '../config'
+require_relative '../utils'
 
 module Wralph
   module Interfaces
@@ -77,6 +79,12 @@ module Wralph
         stdout, = Shell.run_command("gh pr list --head #{branch_name} --json number -q '.[0].number'")
         pr_number = stdout.strip
         pr_number.empty? || pr_number == 'null' ? nil : pr_number
+      end
+
+      def self.branch_name(identifier)
+        config = Config.load
+        template = config.repo&.branch_name || "issue-\#{identifier}"
+        Utils.prompt_sub(template, identifier: identifier)
       end
     end
   end

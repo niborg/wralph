@@ -16,6 +16,9 @@ RSpec.describe Wralph::Run::ExecutePlan do
       allow(Wralph::Interfaces::Shell).to receive(:run_command)
         .with('git branch --show-current')
         .and_return(['master', '', true])
+
+      # Mock Repo.branch_name to return the expected branch name
+      allow(Wralph::Interfaces::Repo).to receive(:branch_name).with(issue_number).and_return(branch_name)
     end
 
     context 'when plan file does not exist' do

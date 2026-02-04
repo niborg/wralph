@@ -10,7 +10,7 @@ module Wralph
       def self.run(issue_number)
         Init.ensure_initialized!
 
-        branch_name = "issue-#{issue_number}".freeze
+        branch_name = Interfaces::Repo.branch_name(issue_number)
 
         # Delete local branch
         _, _, success = Interfaces::Shell.run_command("git branch -D #{branch_name}")

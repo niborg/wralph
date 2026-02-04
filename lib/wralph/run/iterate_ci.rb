@@ -15,7 +15,7 @@ module Wralph
       MAX_RETRIES = 10
 
       def self.run(issue_number, pr_number = nil)
-        branch_name = "issue-#{issue_number}".freeze
+        branch_name = Interfaces::Repo.branch_name(issue_number)
         pr_number ||= Interfaces::Repo.get_pr_from_branch_name(branch_name)
 
         stdout, = Interfaces::Shell.run_command('git branch --show-current')

@@ -73,4 +73,61 @@ RSpec.describe Wralph::Interfaces::Repo do
       expect(Wralph::Interfaces::Repo.secrets_file).to eq(expected_path)
     end
   end
+
+  describe '.branch_name' do
+    before do
+      Wralph::Config.reset
+    end
+
+    it 'uses default template when no config exists' do
+      Dir.mktmpdir do |tmpdir|
+        FileUtils.mkdir_p(File.join(tmpdir, '.git'))
+
+        Dir.chdir(tmpdir) do
+          result = Wralph::Interfaces::Repo.branch_name('123')
+          expect(result).to eq('issue-123')
+        end
+      end
+    end
+
+    it 'uses custom template from config' do
+      Dir.mktmpdir do |tmpdir|
+        FileUtils.mkdir_p(File.join(tmpdir, '.git'))
+        wralph_dir = File.join(tmpdir, '.wralph')
+        FileUtils.mkdir_p(wralph_dir)
+
+        config_data = {
+          'repo' => {
+            'branch_name' => "feature/ticket-\#{identifier}"
+          }
+        }
+        File.write(File.join(wralph_dir, 'config.yaml'), config_data.to_yaml)
+
+        Dir.chdir(tmpdir) do
+          result = Wralph::Interfaces::Repo.branch_name('456')
+          expect(result).to eq('feature/ticket-456')
+        end
+      end
+    end
+
+    it 'handles template with multiple variables' do
+      Dir.mktmpdir do |tmpdir|
+        FileUtils.mkdir_p(File.join(tmpdir, '.git'))
+        wralph_dir = File.join(tmpdir, '.wralph')
+        FileUtils.mkdir_p(wralph_dir)
+
+        config_data = {
+          'repo' => {
+            'branch_name' => "bugfix-\#{identifier}"
+          }
+        }
+        File.write(File.join(wralph_dir, 'config.yaml'), config_data.to_yaml)
+
+        Dir.chdir(tmpdir) do
+          result = Wralph::Interfaces::Repo.branch_name('789')
+          expect(result).to eq('bugfix-789')
+        end
+      end
+    end
+  end
 end

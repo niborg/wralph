@@ -9,7 +9,7 @@ module Wralph
   module Run
     module ActOnCIResults
       def self.run(issue_number)
-        branch_name = "issue-#{issue_number}".freeze
+        branch_name = Interfaces::Repo.branch_name(issue_number)
 
         # Check current branch to return to later
         stdout, = Interfaces::Shell.run_command('git branch --show-current')
