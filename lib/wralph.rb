@@ -15,6 +15,7 @@ require_relative 'wralph/run/iterate_ci'
 require_relative 'wralph/run/act_on_ci_results'
 require_relative 'wralph/run/feedback'
 require_relative 'wralph/run/remove'
+require_relative 'wralph/run/set_config'
 
 module Wralph
 end

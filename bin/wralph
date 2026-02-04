@@ -41,6 +41,12 @@ when 'remove'
     exit 1
   end
   Wralph::Run::Remove.run(ARGV[1])
+when 'set_config'
+  if ARGV[1].nil?
+    puts "Usage: wralph set_config <issue_number>"
+    exit 1
+  end
+  Wralph::Run::SetConfig.run(ARGV[1])
 when '--version', '-v'
   puts "wralph #{Wralph::VERSION}"
 else
@@ -54,6 +60,7 @@ else
     puts "  act_on_ci_results <issue_number>  Continue monitoring CI and fix failures"
     puts "  feedback <issue_number> Handle review feedback"
     puts "  remove <issue_number>   Remove branch, worktree, and remote branch for issue"
+    puts "  set_config <issue_number>  Copy .wralph contents to worktree for issue"
     puts ""
     puts "Options:"
     puts "  --version, -v           Show version"
