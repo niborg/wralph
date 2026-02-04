@@ -62,6 +62,9 @@ module Wralph
 
       def default_hash
         {
+          'repo' => {
+            'branch_name' => "issue-\#{identifier}"
+          },
           'objective_repository' => {
             'source' => 'github_issues'
           },

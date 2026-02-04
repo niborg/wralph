@@ -1,6 +1,12 @@
 # WRALPH Configuration
 # Configure which adapters to use for different components
 
+# Repository settings
+repo:
+  # Branch name template for generated branches
+  # Uses #{identifier} as a placeholder for the issue number
+  branch_name: "issue-#{identifier}"
+
 # Where the objectives, PRDs, or other issue write-ups are stored.
 objective_repository:
   # You can specify a "custom" source, just provide a class that implements

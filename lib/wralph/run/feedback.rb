@@ -22,7 +22,7 @@ module Wralph
       def self.run(issue_number)
         Init.ensure_initialized!
 
-        branch_name = "issue-#{issue_number}".freeze
+        branch_name = Interfaces::Repo.branch_name(issue_number)
         plan_file = Interfaces::Repo.plan_file(issue_number)
 
         stdout, = Interfaces::Shell.run_command('git branch --show-current')

@@ -16,7 +16,7 @@ module Wralph
         plan_file = Interfaces::Repo.plan_file(issue_number)
         plan_exists = File.exist?(plan_file)
 
-        branch_name = "issue-#{issue_number}".freeze
+        branch_name = Interfaces::Repo.branch_name(issue_number)
         stdout, = Interfaces::Shell.run_command('git branch --show-current')
         current_branch = stdout.strip
 
