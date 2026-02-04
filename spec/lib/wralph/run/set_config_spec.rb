@@ -77,7 +77,7 @@ RSpec.describe Wralph::Run::SetConfig do
         Dir.mktmpdir do |main_repo|
           Dir.mktmpdir do |worktree_path|
             FileUtils.mkdir_p(File.join(main_repo, '.git'))
-            # Note: NOT creating .wralph directory
+            # NOTE: NOT creating .wralph directory
 
             # Mock Init.ensure_initialized! to pass (simulate wralph is initialized)
             allow(Wralph::Run::Init).to receive(:ensure_initialized!)
@@ -99,8 +99,8 @@ RSpec.describe Wralph::Run::SetConfig do
 
             # Mock get_worktrees to return a worktree
             allow(Wralph::Interfaces::Shell).to receive(:get_worktrees).and_return([
-              {'branch' => branch_name, 'path' => worktree_path}
-            ])
+                                                                                     {'branch' => branch_name, 'path' => worktree_path}
+                                                                                   ])
 
             Dir.chdir(main_repo) do
               expect { described_class.run(issue_number) }.to raise_error(SystemExit) do |error|
@@ -151,8 +151,8 @@ RSpec.describe Wralph::Run::SetConfig do
 
             # Mock get_worktrees to return a worktree
             allow(Wralph::Interfaces::Shell).to receive(:get_worktrees).and_return([
-              {'branch' => branch_name, 'path' => worktree_path}
-            ])
+                                                                                     {'branch' => branch_name, 'path' => worktree_path}
+                                                                                   ])
 
             Dir.chdir(main_repo) do
               described_class.run(issue_number)
@@ -208,8 +208,8 @@ RSpec.describe Wralph::Run::SetConfig do
 
             # Mock get_worktrees
             allow(Wralph::Interfaces::Shell).to receive(:get_worktrees).and_return([
-              {'branch' => branch_name, 'path' => worktree_path}
-            ])
+                                                                                     {'branch' => branch_name, 'path' => worktree_path}
+                                                                                   ])
 
             Dir.chdir(main_repo) do
               described_class.run(issue_number)

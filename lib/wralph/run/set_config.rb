@@ -14,8 +14,8 @@ module Wralph
 
         # Check if we're currently in a worktree
         stdout, = Interfaces::Shell.run_command('git rev-parse --show-toplevel')
-        current_repo_root = stdout.strip
-        expected_main_repo_root = Interfaces::Repo.repo_root
+        stdout.strip
+        Interfaces::Repo.repo_root
 
         # If we're in a worktree, the path will be different from the main repo root
         # We use git rev-parse to check if we're in a git-dir with a commondir (worktree indicator)
