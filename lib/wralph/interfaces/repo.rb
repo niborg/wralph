@@ -64,7 +64,9 @@ module Wralph
       end
 
       def self.failure_details_file(branch_name, retry_count)
-        File.join(tmp_dir, "#{branch_name}_failure_details_#{retry_count}_#{retry_count}.txt")
+        # Sanitize branch name to be safe for use in filenames (replace / with -)
+        safe_branch_name = branch_name.gsub('/', '-')
+        File.join(tmp_dir, "#{safe_branch_name}_failure_details_#{retry_count}_#{retry_count}.txt")
       end
 
       def self.fixtures_dir
