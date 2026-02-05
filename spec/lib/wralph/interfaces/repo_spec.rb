@@ -74,6 +74,31 @@ RSpec.describe Wralph::Interfaces::Repo do
     end
   end
 
+  describe '.failure_details_file' do
+    it 'returns the correct path for a failure details file' do
+      branch_name = 'issue-123'
+      retry_count = 1
+      expected_path = File.join(Wralph::Interfaces::Repo.tmp_dir, "#{branch_name}_failure_details_#{retry_count}_#{retry_count}.txt")
+      expect(Wralph::Interfaces::Repo.failure_details_file(branch_name, retry_count)).to eq(expected_path)
+    end
+
+    it 'sanitizes branch names with slashes to prevent directory creation' do
+      branch_name = 'nickk/issue-123'
+      retry_count = 2
+      # The slash should be replaced with a dash
+      expected_path = File.join(Wralph::Interfaces::Repo.tmp_dir, "nickk-issue-123_failure_details_#{retry_count}_#{retry_count}.txt")
+      expect(Wralph::Interfaces::Repo.failure_details_file(branch_name, retry_count)).to eq(expected_path)
+    end
+
+    it 'sanitizes branch names with multiple slashes' do
+      branch_name = 'team/user/feature-456'
+      retry_count = 3
+      # All slashes should be replaced with dashes
+      expected_path = File.join(Wralph::Interfaces::Repo.tmp_dir, "team-user-feature-456_failure_details_#{retry_count}_#{retry_count}.txt")
+      expect(Wralph::Interfaces::Repo.failure_details_file(branch_name, retry_count)).to eq(expected_path)
+    end
+  end
+
   describe '.branch_name' do
     before do
       Wralph::Config.reset
