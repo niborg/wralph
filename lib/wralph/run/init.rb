@@ -52,7 +52,7 @@ module Wralph
         # Ensure .wralph/secrets.yaml is in .gitignore
         update_gitignore
 
-        Interfaces::Print.success "WRALPH initialized successfully!"
+        Interfaces::Print.success "wralph initialized successfully!"
         Interfaces::Print.info "You can now use 'wralph plan <issue_number>' to get started"
       end
 
@@ -64,9 +64,9 @@ module Wralph
       def self.ensure_initialized!
         return if initialized?
 
-        Interfaces::Print.error "WRALPH has not been initialized in this repository."
+        Interfaces::Print.error "wralph has not been initialized in this repository."
         Interfaces::Print.error ""
-        Interfaces::Print.error "Please run 'wralph init' first to set up WRALPH."
+        Interfaces::Print.error "Please run 'wralph init' first to set up wralph."
         exit 1
       rescue SystemExit
         raise
@@ -87,7 +87,7 @@ module Wralph
         end
 
         # Add entry to .gitignore
-        entry = "\n# WRALPH secrets\n#{secrets_ignore_entry}\n"
+        entry = "\n# wralph secrets\n#{secrets_ignore_entry}\n"
         File.open(gitignore_path, 'a') do |f|
           f.write(entry)
         end

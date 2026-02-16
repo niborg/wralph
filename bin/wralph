@@ -54,7 +54,7 @@ else
     puts "Usage: wralph <command> [options]"
     puts ""
     puts "Commands:"
-    puts "  init                    Initialize WRALPH in the current repository"
+    puts "  init                    Initialize wralph in the current repository"
     puts "  plan <issue_number>     Generate and execute plan for an issue"
     puts "  execute <issue_number>  Execute an existing plan for an issue"
     puts "  act_on_ci_results <issue_number>  Continue monitoring CI and fix failures"
