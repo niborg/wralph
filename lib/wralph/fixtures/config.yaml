@@ -33,6 +33,10 @@ agent_harness:
   # the class must be in the .wralph directory and track the class name in
   # snake_case, e.g.: my_custom_agent_adapter.rb
   source: claude_code
+  # Flags to pass to the terminal command
+  # Each flag is converted to --flag-name format, e.g. "dangerously-skip-permissions" -> "--dangerously-skip-permissions"
+  flags:
+    - dangerously-skip-permissions
 
 # Prompt templates for the agent harness
 # You can customize any of the prompts below. Each accepts template variables

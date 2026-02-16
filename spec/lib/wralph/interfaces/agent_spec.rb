@@ -16,17 +16,38 @@ RSpec.describe Wralph::Interfaces::Agent do
       )
     end
 
-    it 'calls claude with the provided instructions' do
+    it 'calls claude with the provided instructions and default flags' do
       instructions = 'Test instructions'
-      expected_command = /claude -p.*--dangerously-skip-permissions/
+      allow(Wralph::Config).to receive(:load).and_return(
+        OpenStruct.new(
+          agent_harness: OpenStruct.new(source: 'claude_code', flags: ['dangerously-skip-permissions'])
+        )
+      )
 
       allow(Wralph::Interfaces::Shell).to receive(:run_command).and_return(['test output', '', true])
 
       described_class.run(instructions)
 
       expect(Wralph::Interfaces::Shell).to have_received(:run_command) do |cmd|
-        expect(cmd).to match(expected_command)
+        expect(cmd).to match(/claude -p.*--dangerously-skip-permissions/)
         expect(cmd).to include('--dangerously-skip-permissions')
+      end
+    end
+
+    it 'omits flags when flags config is empty' do
+      allow(Wralph::Config).to receive(:load).and_return(
+        OpenStruct.new(
+          agent_harness: OpenStruct.new(source: 'claude_code', flags: [])
+        )
+      )
+
+      allow(Wralph::Interfaces::Shell).to receive(:run_command).and_return(['test output', '', true])
+
+      described_class.run('test instructions')
+
+      expect(Wralph::Interfaces::Shell).to have_received(:run_command) do |cmd|
+        expect(cmd).not_to include('--dangerously-skip-permissions')
+        expect(cmd).to include('claude -p')
       end
     end
 

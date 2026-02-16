@@ -72,7 +72,8 @@ module Wralph
             'source' => 'circle_ci'
           },
           'agent_harness' => {
-            'source' => 'claude_code'
+            'source' => 'claude_code',
+            'flags' => ['dangerously-skip-permissions']
           },
           'prompts' => load_default_prompts
         }
