@@ -7,6 +7,7 @@ require 'tmpdir'
 RSpec.describe Wralph::Interfaces::Ci do
   before do
     Wralph::Config.reset
+    Wralph::Secrets.reset
     described_class.reset_adapter
   end
 

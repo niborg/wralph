@@ -2,6 +2,7 @@
 
 require_relative 'wralph/version'
 require_relative 'wralph/config'
+require_relative 'wralph/secrets'
 require_relative 'wralph/interfaces/repo'
 require_relative 'wralph/interfaces/print'
 require_relative 'wralph/interfaces/shell'

@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require 'yaml'
 require_relative '../adapters/cis'
 require_relative '../config'
+require_relative '../secrets'
 require_relative 'repo'
 
 module Wralph
@@ -21,8 +21,7 @@ module Wralph
       end
 
       def self.api_token
-        secrets = load_secrets
-        token = secrets['ci_api_token']
+        token = Secrets.ci_api_token
         return nil unless token
 
         token = token.strip
@@ -90,18 +89,6 @@ module Wralph
         return if missing_methods.empty?
 
         raise "Custom adapter class must implement: #{missing_methods.join(', ')}"
-      end
-
-      def self.load_secrets
-        secrets_file = Repo.secrets_file
-        return {} unless File.exist?(secrets_file)
-
-        begin
-          YAML.load_file(secrets_file) || {}
-        rescue Psych::SyntaxError => e
-          Print.warning "Failed to parse #{secrets_file}: #{e.message}"
-          {}
-        end
       end
     end
   end
