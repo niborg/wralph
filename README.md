@@ -44,6 +44,7 @@ flowchart TD
 ## Installation
 
 ```bash
+brew tap niborg/homebrew-wralph
 brew install wralph
 ```
 
