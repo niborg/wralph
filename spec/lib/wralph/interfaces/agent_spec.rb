@@ -191,6 +191,76 @@ RSpec.describe Wralph::Interfaces::Agent do
     end
   end
 
+  describe '.run with cursor adapter' do
+    before do
+      allow(Wralph::Config).to receive(:load).and_return(
+        OpenStruct.new(
+          agent_harness: OpenStruct.new(source: 'cursor', flags: [])
+        )
+      )
+    end
+
+    it 'calls agent with the provided instructions' do
+      instructions = 'Test instructions'
+      expected_command = /agent -p/
+
+      allow(Wralph::Interfaces::Shell).to receive(:run_command).and_return(['test output', '', true])
+
+      described_class.run(instructions)
+
+      expect(Wralph::Interfaces::Shell).to have_received(:run_command) do |cmd|
+        expect(cmd).to match(expected_command)
+      end
+    end
+
+    it 'passes configured flags to agent' do
+      allow(Wralph::Config).to receive(:load).and_return(
+        OpenStruct.new(
+          agent_harness: OpenStruct.new(source: 'cursor', flags: ['output-format text'])
+        )
+      )
+
+      allow(Wralph::Interfaces::Shell).to receive(:run_command).and_return(['test output', '', true])
+
+      described_class.run('test instructions')
+
+      expect(Wralph::Interfaces::Shell).to have_received(:run_command) do |cmd|
+        expect(cmd).to include('--output-format text')
+      end
+    end
+
+    it 'returns the stdout output from agent' do
+      expected_output = 'AI generated response'
+      allow(Wralph::Interfaces::Shell).to receive(:run_command).and_return([expected_output, '', true])
+
+      result = described_class.run('test instructions')
+
+      expect(result).to eq(expected_output)
+    end
+
+    it 'shell-escapes the instructions to prevent command injection' do
+      malicious_instructions = 'test; rm -rf /'
+      allow(Wralph::Interfaces::Shell).to receive(:run_command).and_return(['safe', '', true])
+
+      described_class.run(malicious_instructions)
+
+      expect(Wralph::Interfaces::Shell).to have_received(:run_command) do |cmd|
+        expect(cmd).to match(/agent -p/)
+        expect(cmd).not_to include('; rm -rf')
+      end
+    end
+
+    it 'uses raise_on_error: false when calling run_command' do
+      allow(Wralph::Interfaces::Shell).to receive(:run_command).and_return(['output', '', true])
+
+      described_class.run('instructions')
+
+      expect(Wralph::Interfaces::Shell).to have_received(:run_command) do |_cmd, options|
+        expect(options[:raise_on_error]).to be false
+      end
+    end
+  end
+
   describe '.load_adapter' do
     it 'raises an error for unknown source' do
       allow(Wralph::Config).to receive(:load).and_return(
@@ -220,6 +290,17 @@ RSpec.describe Wralph::Interfaces::Agent do
 
       adapter = described_class.adapter
       expect(adapter).to eq(Wralph::Adapters::Agents::ClaudeCode)
+    end
+
+    it 'loads the cursor adapter when configured' do
+      allow(Wralph::Config).to receive(:load).and_return(
+        OpenStruct.new(
+          agent_harness: OpenStruct.new(source: 'cursor')
+        )
+      )
+
+      adapter = described_class.adapter
+      expect(adapter).to eq(Wralph::Adapters::Agents::Cursor)
     end
   end
 

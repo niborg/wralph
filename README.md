@@ -37,7 +37,7 @@ flowchart TD
 
 - **[Ruby](https://www.ruby-lang.org/)** `>= 3.0`
 - **[GitHub CLI](https://cli.github.com/)** (`gh`) — authenticated via `gh auth login`
-- **[Claude Code CLI](https://code.claude.com/)** (`claude`) or **[OpenCode](https://opencode.ai/)** (`opencode`)
+- **[Claude Code CLI](https://code.claude.com/)** (`claude`), **Cursor Agent CLI** (`agent`), or **[OpenCode](https://opencode.ai/)** (`opencode`)
 - **[worktrunk](https://github.com/max-sixty/worktrunk)** (`wt`) — git worktree management
 - **[jq](https://stedolan.github.io/jq/)** and **[curl](https://curl.se/)**
 
@@ -112,7 +112,7 @@ ci:
   source: circle_ci                    # or "custom" with class_name
 
 agent_harness:
-  source: claude_code                  # claude_code, opencode, or "custom"
+  source: claude_code                  # claude_code, cursor, opencode, or "custom"
   flags:
     - dangerously-skip-permissions     # CLI flags passed to the agent
 
@@ -123,6 +123,8 @@ prompts:
   feedback: ...
   ci: ...
 ```
+
+When using Cursor, `wralph` invokes `agent -p "..."`. If you switch `source` to `cursor` and do not specify `flags`, none are passed by default.
 
 ### `secrets.yaml`
 

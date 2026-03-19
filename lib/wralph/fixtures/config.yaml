@@ -25,8 +25,9 @@ ci:
 
 # Agent harness (AI coding assistant) configuration
 agent_harness:
-  # Supported sources: claude_code, opencode, custom
+  # Supported sources: claude_code, cursor, opencode, custom
   # - claude_code: Anthropic's Claude Code CLI (requires `claude` to be installed)
+  # - cursor: Cursor Agent CLI (requires `agent` to be installed)
   # - opencode: OpenCode CLI (requires `opencode` to be installed)
   # You can specify a "custom" source, just provide a class that implements
   # the Agent interface and specify the class_name below. The file containing
@@ -35,6 +36,7 @@ agent_harness:
   source: claude_code
   # Flags to pass to the terminal command
   # Each flag is converted to --flag-name format, e.g. "dangerously-skip-permissions" -> "--dangerously-skip-permissions"
+  # Claude defaults to "dangerously-skip-permissions". Other harnesses default to no flags unless you set them here.
   flags:
     - dangerously-skip-permissions
 
