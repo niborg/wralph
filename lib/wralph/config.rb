@@ -27,6 +27,7 @@ module Wralph
                 yaml_val
               end
             end
+            normalize_agent_harness_defaults!(merged_data, yaml_data)
             deep_struct(merged_data)
           rescue Psych::SyntaxError => e
             Interfaces::Print.warning "Failed to parse #{config_file}: #{e.message}"
@@ -100,6 +101,18 @@ module Wralph
             value.is_a?(Hash) ? deep_struct(value) : value
           end
         )
+      end
+
+      def normalize_agent_harness_defaults!(merged_data, yaml_data)
+        agent_harness = merged_data['agent_harness']
+        yaml_agent_harness = yaml_data['agent_harness']
+        return unless agent_harness.is_a?(Hash) && yaml_agent_harness.is_a?(Hash)
+
+        source = agent_harness['source']
+        return unless source != 'claude_code' && !yaml_agent_harness.key?('flags')
+
+        # Avoid carrying Claude-specific default flags into other harnesses.
+        agent_harness['flags'] = []
       end
     end
   end

@@ -117,6 +117,54 @@ RSpec.describe Wralph::Config do
         end
       end
     end
+
+    it 'does not inherit Claude-only default flags when switching agent harness source' do
+      Dir.mktmpdir do |tmpdir|
+        git_dir = File.join(tmpdir, '.git')
+        Dir.mkdir(git_dir)
+
+        Dir.chdir(tmpdir) do
+          wralph_dir = File.join(tmpdir, '.wralph')
+          FileUtils.mkdir_p(wralph_dir)
+          config_file = File.join(wralph_dir, 'config.yaml')
+
+          config_data = {
+            'agent_harness' => {
+              'source' => 'cursor'
+            }
+          }
+          File.write(config_file, config_data.to_yaml)
+
+          config = Wralph::Config.load
+          expect(config.agent_harness.source).to eq('cursor')
+          expect(config.agent_harness.flags).to eq([])
+        end
+      end
+    end
+
+    it 'preserves explicit flags for non-Claude agent harnesses' do
+      Dir.mktmpdir do |tmpdir|
+        git_dir = File.join(tmpdir, '.git')
+        Dir.mkdir(git_dir)
+
+        Dir.chdir(tmpdir) do
+          wralph_dir = File.join(tmpdir, '.wralph')
+          FileUtils.mkdir_p(wralph_dir)
+          config_file = File.join(wralph_dir, 'config.yaml')
+
+          config_data = {
+            'agent_harness' => {
+              'source' => 'cursor',
+              'flags' => ['output-format text']
+            }
+          }
+          File.write(config_file, config_data.to_yaml)
+
+          config = Wralph::Config.load
+          expect(config.agent_harness.flags).to eq(['output-format text'])
+        end
+      end
+    end
   end
 
   describe '.reload' do

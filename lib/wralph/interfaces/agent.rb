@@ -26,6 +26,8 @@ module Wralph
         case source
         when 'claude_code'
           Adapters::Agents::ClaudeCode
+        when 'cursor'
+          Adapters::Agents::Cursor
         when 'opencode'
           Adapters::Agents::Opencode
         when 'custom'
